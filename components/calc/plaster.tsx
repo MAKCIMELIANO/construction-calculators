@@ -1,7 +1,12 @@
 "use client"
 
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
+import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+
+function round1(n: number) {
+  return Math.round(n * 10) / 10
+}
 
 type PlasterState = {
   area: number | ""
@@ -46,6 +51,16 @@ export function PlasterCalculator() {
       ].join("\n")}
       inputs={
         <>
+          <RoomPicker
+            description="Подставит площадь стен (без вычета) и площадь проёмов."
+            onApply={(m) =>
+              setS((p) => ({
+                ...p,
+                area: round1(m.wallsGross),
+                openings: round1(m.openingsArea),
+              }))
+            }
+          />
           <Section title="Стены">
             <div className="grid gap-4 sm:grid-cols-3">
               <NumberField

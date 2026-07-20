@@ -1,31 +1,17 @@
 "use client"
 
+import { useEffect } from "react"
 import { Plus, Trash2 } from "lucide-react"
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
 import { usePersistedState } from "@/lib/use-persisted-state"
-
-type Opening = {
-  id: string
-  kind: "window" | "door"
-  width: number | ""
-  height: number | ""
-  count: number | ""
-}
-
-type Room = {
-  id: string
-  name: string
-  length: number | ""
-  width: number | ""
-  height: number | ""
-  subtractFromWalls: boolean
-  openings: Opening[]
-}
-
-type RoomStore = {
-  activeId: string
-  rooms: Room[]
-}
+import {
+  DEFAULT_ROOM_STORE,
+  ROOM_STORAGE_KEY,
+  notifyRoomsUpdated,
+  type Opening,
+  type Room,
+  type RoomStore,
+} from "@/lib/rooms"
 
 let idCounter = 0
 function newId(prefix = "id") {
@@ -48,26 +34,12 @@ function createRoom(name: string): Room {
   }
 }
 
-const INITIAL_STORE: RoomStore = {
-  activeId: "room-default",
-  rooms: [
-    {
-      id: "room-default",
-      name: "Зал",
-      length: 4,
-      width: 3,
-      height: 2.7,
-      subtractFromWalls: true,
-      openings: [
-        { id: "op-window-1", kind: "window", width: 1.4, height: 1.5, count: 1 },
-        { id: "op-door-1", kind: "door", width: 0.9, height: 2.1, count: 1 },
-      ],
-    },
-  ],
-}
-
 export function RoomAreaCalculator() {
-  const [store, setStore] = usePersistedState<RoomStore>("calc-room-v1", INITIAL_STORE)
+  const [store, setStore] = usePersistedState<RoomStore>(ROOM_STORAGE_KEY, DEFAULT_ROOM_STORE)
+
+  useEffect(() => {
+    notifyRoomsUpdated()
+  }, [store])
 
   const room = store.rooms.find((r) => r.id === store.activeId) ?? store.rooms[0]
   if (!room) return null

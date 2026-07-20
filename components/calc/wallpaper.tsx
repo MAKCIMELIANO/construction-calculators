@@ -1,7 +1,12 @@
 "use client"
 
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
+import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+
+function round1(n: number) {
+  return Math.round(n * 10) / 10
+}
 
 type WallpaperState = {
   perimeter: number | ""
@@ -64,6 +69,17 @@ export function WallpaperCalculator() {
       ].join("\n")}
       inputs={
         <>
+          <RoomPicker
+            description="Подставит периметр, высоту и площадь проёмов из выбранной комнаты."
+            onApply={(m) =>
+              setS((prev) => ({
+                ...prev,
+                perimeter: round1(m.perimeter),
+                height: round1(m.height),
+                openings: round1(m.openingsArea),
+              }))
+            }
+          />
           <Section title="Стены">
             <div className="grid gap-4 sm:grid-cols-3">
               <NumberField

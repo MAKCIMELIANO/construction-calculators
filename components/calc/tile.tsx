@@ -1,7 +1,12 @@
 "use client"
 
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
+import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+
+function round1(n: number) {
+  return Math.round(n * 10) / 10
+}
 
 type TileState = {
   area: number | ""
@@ -49,6 +54,10 @@ export function TileCalculator() {
       ].join("\n")}
       inputs={
         <>
+          <RoomPicker
+            description="Подставит площадь пола комнаты."
+            onApply={(m) => setS((p) => ({ ...p, area: round1(m.floor) }))}
+          />
           <Section title="Площадь укладки">
             <div className="grid gap-4 sm:grid-cols-2">
               <NumberField
