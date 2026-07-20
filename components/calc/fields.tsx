@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type React from "react"
 import { Check, Copy, Printer, Share2 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -100,13 +100,32 @@ export function ResultRow({
   )
 }
 
-function ReportActions({ title, text }: { title: string; text: string }) {
-  const [status, setStatus] = useState<"idle" | "copied" | "shared">("idle")
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+}
 
-  function flash(next: "copied" | "shared") {
-    setStatus(next)
-    window.setTimeout(() => setStatus("idle"), 1800)
-  }
+function ReportActions({ title, text }: { title: string; text: string }) {
+  const [copied, setCopied] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [canNativeShare, setCanNativeShare] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setCanNativeShare(typeof navigator.share === "function" && isMobileDevice())
+  }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    function onPointerDown(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", onPointerDown)
+    return () => document.removeEventListener("mousedown", onPointerDown)
+  }, [menuOpen])
 
   async function copyReport() {
     try {
@@ -123,36 +142,43 @@ function ReportActions({ title, text }: { title: string; text: string }) {
         document.execCommand("copy")
         document.body.removeChild(area)
       }
-      flash("copied")
     } catch {
-      flash("copied")
+      // ignore
     }
+    setCopied(true)
+    setMenuOpen(false)
+    window.setTimeout(() => setCopied(false), 1800)
   }
 
-  async function shareReport() {
-    const payload = {
-      title,
-      text,
-      url: window.location.href,
-    }
+  function openShare(url: string) {
+    window.open(url, "_blank", "noopener,noreferrer")
+    setMenuOpen(false)
+  }
 
+  function shareTelegram() {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`
+    openShare(url)
+  }
+
+  function shareWhatsApp() {
+    openShare(`https://wa.me/?text=${encodeURIComponent(text)}`)
+  }
+
+  function shareViber() {
+    // Deep-link Viber: на телефоне откроет приложение, на ПК — если установлен клиент
+    openShare(`viber://forward?text=${encodeURIComponent(text)}`)
+  }
+
+  async function shareNative() {
+    setMenuOpen(false)
     try {
       if (typeof navigator.share === "function") {
-        const canShare =
-          typeof navigator.canShare !== "function" || navigator.canShare(payload)
-        if (canShare) {
-          await navigator.share(payload)
-          flash("shared")
-          return
-        }
+        await navigator.share({ title, text, url: window.location.href })
       }
     } catch (err) {
-      // Пользователь закрыл меню шаринга — ничего не делаем
       if (err instanceof DOMException && err.name === "AbortError") return
-      // На десктопе share часто «есть», но падает — уходим в копирование
+      await copyReport()
     }
-
-    await copyReport()
   }
 
   return (
@@ -170,25 +196,63 @@ function ReportActions({ title, text }: { title: string; text: string }) {
         onClick={copyReport}
         className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
       >
-        {status === "copied" ? <Check className="size-4" /> : <Copy className="size-4" />}
-        {status === "copied" ? "Скопировано" : "Копировать"}
+        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+        {copied ? "Скопировано" : "Копировать"}
       </button>
-      <button
-        type="button"
-        onClick={shareReport}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-      >
-        {status === "shared" || status === "copied" ? (
-          <Check className="size-4" />
-        ) : (
+
+      <div className="relative" ref={menuRef}>
+        <button
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={menuOpen}
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        >
           <Share2 className="size-4" />
-        )}
-        {status === "shared"
-          ? "Отправлено"
-          : status === "copied"
-            ? "Скопировано"
-            : "Поделиться"}
-      </button>
+          Поделиться
+        </button>
+
+        {menuOpen ? (
+          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 overflow-hidden rounded-lg border border-border bg-card shadow-lg">
+            <button
+              type="button"
+              onClick={shareTelegram}
+              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
+            >
+              Telegram
+            </button>
+            <button
+              type="button"
+              onClick={shareWhatsApp}
+              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
+            >
+              WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={shareViber}
+              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
+            >
+              Viber
+            </button>
+            <button
+              type="button"
+              onClick={copyReport}
+              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
+            >
+              Скопировать текст
+            </button>
+            {canNativeShare ? (
+              <button
+                type="button"
+                onClick={shareNative}
+                className="flex w-full items-center border-t border-border px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
+              >
+                Ещё приложения…
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }
