@@ -110,18 +110,27 @@ export function ResultRow({
 type ShareItemProps = {
   title: string
   description: string
-  onClick: () => void
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void
+  href?: string
+  target?: "_blank"
   icon: React.ReactNode
   iconClassName: string
 }
 
-function ShareMenuItem({ title, description, onClick, icon, iconClassName }: ShareItemProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-    >
+function ShareMenuItem({
+  title,
+  description,
+  onClick,
+  href,
+  target,
+  icon,
+  iconClassName,
+}: ShareItemProps) {
+  const className =
+    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+
+  const body = (
+    <>
       <span
         className={cn(
           "flex size-9 shrink-0 items-center justify-center rounded-lg text-white",
@@ -134,6 +143,26 @@ function ShareMenuItem({ title, description, onClick, icon, iconClassName }: Sha
         <span className="text-sm font-medium leading-tight">{title}</span>
         <span className="text-xs leading-tight text-muted-foreground">{description}</span>
       </span>
+    </>
+  )
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={target}
+        rel={target === "_blank" ? "noopener noreferrer" : undefined}
+        onClick={onClick}
+        className={className}
+      >
+        {body}
+      </a>
+    )
+  }
+
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {body}
     </button>
   )
 }
@@ -142,43 +171,19 @@ function isMobileDevice() {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 }
 
-/** Open share URL without relying on an <a> that React may unmount mid-click. */
-function openShareUrl(url: string, { newTab = true } = {}) {
-  if (newTab) {
-    const win = window.open(url, "_blank")
-    if (win) {
-      try {
-        win.opener = null
-      } catch {
-        // ignore
-      }
-      return true
-    }
-  }
-
-  // Fallback: temporary <a> outside React tree (popup blockers / protocol links)
-  const a = document.createElement("a")
-  a.href = url
-  if (newTab) {
-    a.target = "_blank"
-    a.rel = "noopener noreferrer"
-  }
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  return true
-}
-
 function ReportActions({ title, text }: { title: string; text: string }) {
   const [copied, setCopied] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [canNativeShare, setCanNativeShare] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setCanNativeShare(typeof navigator.share === "function" && isMobileDevice())
+    const mobile = isMobileDevice()
+    setIsMobile(mobile)
+    setCanNativeShare(typeof navigator.share === "function" && mobile)
   }, [])
 
   useLayoutEffect(() => {
@@ -249,9 +254,9 @@ function ReportActions({ title, text }: { title: string; text: string }) {
     window.setTimeout(() => setCopied(false), 1800)
   }
 
-  function shareTo(url: string, newTab = true) {
-    openShareUrl(url, { newTab })
-    setMenuOpen(false)
+  function closeMenuSoon() {
+    // Не закрывать синхронно: иначе <a> может не успеть открыть вкладку/приложение
+    window.setTimeout(() => setMenuOpen(false), 300)
   }
 
   async function shareNative() {
@@ -265,6 +270,11 @@ function ReportActions({ title, text }: { title: string; text: string }) {
       await copyReport()
     }
   }
+
+  const pageUrl = typeof window !== "undefined" ? window.location.href : ""
+  const telegramHref = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(text)}`
+  const whatsappHref = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
+  const viberHref = `viber://forward?text=${encodeURIComponent(text)}`
 
   const menu =
     menuOpen && menuPos
@@ -289,11 +299,9 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="Telegram"
                   description="Отправить в чат"
-                  onClick={() =>
-                    shareTo(
-                      `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`,
-                    )
-                  }
+                  href={telegramHref}
+                  target="_blank"
+                  onClick={closeMenuSoon}
                   icon={<SiTelegram className="size-4" aria-hidden />}
                   iconClassName="bg-[#26A5E4]"
                 />
@@ -302,21 +310,32 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="WhatsApp"
                   description="Отправить в чат"
-                  onClick={() => shareTo(`https://wa.me/?text=${encodeURIComponent(text)}`)}
+                  href={whatsappHref}
+                  target="_blank"
+                  onClick={closeMenuSoon}
                   icon={<SiWhatsapp className="size-4" aria-hidden />}
                   iconClassName="bg-[#25D366]"
                 />
               </li>
               <li>
-                <ShareMenuItem
-                  title="Viber"
-                  description="Отправить в чат"
-                  onClick={() =>
-                    shareTo(`viber://forward?text=${encodeURIComponent(text)}`, false)
-                  }
-                  icon={<SiViber className="size-4" aria-hidden />}
-                  iconClassName="bg-[#7360F2]"
-                />
+                {isMobile ? (
+                  <ShareMenuItem
+                    title="Viber"
+                    description="Открыть приложение"
+                    href={viberHref}
+                    onClick={closeMenuSoon}
+                    icon={<SiViber className="size-4" aria-hidden />}
+                    iconClassName="bg-[#7360F2]"
+                  />
+                ) : (
+                  <ShareMenuItem
+                    title="Viber"
+                    description={copied ? "Скопировано — вставьте в Viber" : "Скопировать текст"}
+                    onClick={copyReport}
+                    icon={<SiViber className="size-4" aria-hidden />}
+                    iconClassName="bg-[#7360F2]"
+                  />
+                )}
               </li>
               <li>
                 <ShareMenuItem
