@@ -109,18 +109,28 @@ export function ResultRow({
 type ShareItemProps = {
   title: string
   description: string
-  onClick: () => void
+  onClick?: () => void
+  href?: string
+  /** Protocol links (viber://) should not use target=_blank */
+  external?: boolean
   icon: React.ReactNode
   iconClassName: string
 }
 
-function ShareMenuItem({ title, description, onClick, icon, iconClassName }: ShareItemProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-    >
+function ShareMenuItem({
+  title,
+  description,
+  onClick,
+  href,
+  external = true,
+  icon,
+  iconClassName,
+}: ShareItemProps) {
+  const className =
+    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+
+  const body = (
+    <>
       <span
         className={cn(
           "flex size-9 shrink-0 items-center justify-center rounded-lg text-white",
@@ -133,6 +143,25 @@ function ShareMenuItem({ title, description, onClick, icon, iconClassName }: Sha
         <span className="text-sm font-medium leading-tight">{title}</span>
         <span className="text-xs leading-tight text-muted-foreground">{description}</span>
       </span>
+    </>
+  )
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={className}
+        onClick={onClick}
+        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
+        {body}
+      </a>
+    )
+  }
+
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {body}
     </button>
   )
 }
@@ -154,14 +183,15 @@ function ReportActions({ title, text }: { title: string; text: string }) {
   useEffect(() => {
     if (!menuOpen) return
 
-    function onPointerDown(event: MouseEvent) {
+    function onDocClick(event: MouseEvent) {
       if (!menuRef.current?.contains(event.target as Node)) {
         setMenuOpen(false)
       }
     }
 
-    document.addEventListener("mousedown", onPointerDown)
-    return () => document.removeEventListener("mousedown", onPointerDown)
+    // click (not mousedown): menu item navigation must run before we tear the menu down
+    document.addEventListener("click", onDocClick)
+    return () => document.removeEventListener("click", onDocClick)
   }, [menuOpen])
 
   async function copyReport() {
@@ -187,24 +217,6 @@ function ReportActions({ title, text }: { title: string; text: string }) {
     window.setTimeout(() => setCopied(false), 1800)
   }
 
-  function openShare(url: string) {
-    window.open(url, "_blank", "noopener,noreferrer")
-    setMenuOpen(false)
-  }
-
-  function shareTelegram() {
-    const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`
-    openShare(url)
-  }
-
-  function shareWhatsApp() {
-    openShare(`https://wa.me/?text=${encodeURIComponent(text)}`)
-  }
-
-  function shareViber() {
-    openShare(`viber://forward?text=${encodeURIComponent(text)}`)
-  }
-
   async function shareNative() {
     setMenuOpen(false)
     try {
@@ -216,6 +228,11 @@ function ReportActions({ title, text }: { title: string; text: string }) {
       await copyReport()
     }
   }
+
+  const pageUrl = typeof window !== "undefined" ? window.location.href : ""
+  const telegramHref = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(text)}`
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(text)}`
+  const viberHref = `viber://forward?text=${encodeURIComponent(text)}`
 
   return (
     <div className="no-print mt-5 grid gap-2 border-t border-border pt-4 sm:grid-cols-3 lg:grid-cols-1">
@@ -262,7 +279,8 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="Telegram"
                   description="Отправить в чат"
-                  onClick={shareTelegram}
+                  href={telegramHref}
+                  onClick={() => setMenuOpen(false)}
                   icon={<SiTelegram className="size-4" aria-hidden />}
                   iconClassName="bg-[#26A5E4]"
                 />
@@ -271,7 +289,8 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="WhatsApp"
                   description="Отправить в чат"
-                  onClick={shareWhatsApp}
+                  href={whatsappHref}
+                  onClick={() => setMenuOpen(false)}
                   icon={<SiWhatsapp className="size-4" aria-hidden />}
                   iconClassName="bg-[#25D366]"
                 />
@@ -280,7 +299,9 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="Viber"
                   description="Отправить в чат"
-                  onClick={shareViber}
+                  href={viberHref}
+                  external={false}
+                  onClick={() => setMenuOpen(false)}
                   icon={<SiViber className="size-4" aria-hidden />}
                   iconClassName="bg-[#7360F2]"
                 />
