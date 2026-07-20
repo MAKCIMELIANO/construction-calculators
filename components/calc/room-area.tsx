@@ -134,7 +134,7 @@ export function RoomAreaCalculator() {
       ].join("\n")}
       inputs={
         <>
-          <Section title="Комнаты" description="Переключайся между комнатами — значения не сотрутся. После F5 тоже останутся.">
+          <Section title="Комнаты" description="Добавьте комнаты объекта и укажите размеры.">
             <div className="flex flex-col gap-1">
               {store.rooms.map((r) => {
                 const isActive = r.id === room.id
