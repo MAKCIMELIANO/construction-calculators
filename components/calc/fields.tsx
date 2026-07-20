@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import type React from "react"
 import { Check, Copy, Printer, Share2 } from "lucide-react"
+import { SiTelegram, SiViber, SiWhatsapp } from "react-icons/si"
 import { cn } from "@/lib/utils"
 
 export function NumberField({
@@ -97,30 +98,6 @@ export function ResultRow({
         {unit ? <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span> : null}
       </span>
     </div>
-  )
-}
-
-function IconTelegram({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M21.8 4.3c.3-.9-.5-1.6-1.3-1.3L2.9 9.6c-.9.3-.9 1.6.1 1.8l4.4 1.1 1.7 5.3c.3.9 1.5 1.1 2.1.4l2.4-2.5 4.5 3.3c.8.6 1.9.1 2.1-.9l2.6-13.8ZM8.8 12.8l8.6-5.4c.2-.1.4.2.2.3l-7.1 6.5-.5 3.1-1.2-4.5Z" />
-    </svg>
-  )
-}
-
-function IconWhatsApp({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M12 2a9.9 9.9 0 0 0-8.5 14.9L2 22l5.3-1.4A9.9 9.9 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.7.9-.1.2-.3.2-.5.1-.2-.1-.9-.3-1.8-1.1-.7-.6-1.1-1.3-1.3-1.5-.1-.2 0-.3.1-.4l.4-.5c.1-.1.1-.2.2-.4 0-.1 0-.3-.1-.4-.1-.1-.5-1.3-.7-1.7-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.3c.1.2 1.6 2.5 3.9 3.4.5.2 1 .4 1.3.5.6.2 1.1.1 1.5.1.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.1-.3-.2-.5-.3Z" />
-    </svg>
-  )
-}
-
-function IconViber({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M11.4 2C7 2.2 3.4 5.3 3 9.6c-.3 3.3.8 6.1 3.2 8l.1 2.9c0 .5.5.8 1 .6l3.1-1.3c.4.1.8.1 1.2.1 4.6 0 8.4-3.5 8.6-8 .2-4.7-3.7-8.6-9-9Zm4.9 11.6c-.2.6-.9 1.1-1.5 1.3-.4.1-1 .2-2.9-.6-2.3-1-3.8-3.4-3.9-3.6-.2-.2-1.2-1.6-1.2-3 0-1.4.7-2.1.9-2.3.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5.2.5.7 1.8.7 1.9.1.2.1.3 0 .5l-.3.4c-.1.1-.2.3-.1.5.1.2.5.8 1.1 1.3.7.7 1.4 1 1.6 1.1.2.1.4.1.5 0l.7-.8c.1-.2.3-.2.5-.1.2.1 1.4.7 1.6.8.3.1.4.2.5.3.1.2.1.9-.1 1.5Z" />
-    </svg>
   )
 }
 
@@ -281,8 +258,8 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                   title="Telegram"
                   description="Отправить в чат"
                   onClick={shareTelegram}
-                  icon={<IconTelegram className="size-4" />}
-                  iconClassName="bg-[#2AABEE]"
+                  icon={<SiTelegram className="size-4" aria-hidden />}
+                  iconClassName="bg-[#26A5E4]"
                 />
               </li>
               <li>
@@ -290,7 +267,7 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                   title="WhatsApp"
                   description="Отправить в чат"
                   onClick={shareWhatsApp}
-                  icon={<IconWhatsApp className="size-4" />}
+                  icon={<SiWhatsapp className="size-4" aria-hidden />}
                   iconClassName="bg-[#25D366]"
                 />
               </li>
@@ -299,7 +276,7 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                   title="Viber"
                   description="Отправить в чат"
                   onClick={shareViber}
-                  icon={<IconViber className="size-4" />}
+                  icon={<SiViber className="size-4" aria-hidden />}
                   iconClassName="bg-[#7360F2]"
                 />
               </li>
