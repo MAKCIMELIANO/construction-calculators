@@ -1,19 +1,31 @@
 "use client"
 
-import { useState } from "react"
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
+import { usePersistedState } from "@/lib/use-persisted-state"
+
+type PlasterState = {
+  area: number | ""
+  openings: number | ""
+  thickness: number | ""
+  consumption: number | ""
+  bagWeight: number | ""
+}
+
+const INITIAL: PlasterState = {
+  area: 30,
+  openings: 4,
+  thickness: 15,
+  consumption: 8.5,
+  bagWeight: 30,
+}
 
 export function PlasterCalculator() {
-  const [area, setArea] = useState<number | "">(30)
-  const [openings, setOpenings] = useState<number | "">(4)
-  const [thickness, setThickness] = useState<number | "">(15) // мм
-  const [consumption, setConsumption] = useState<number | "">(8.5) // кг/м² на 10мм
-  const [bagWeight, setBagWeight] = useState<number | "">(30)
+  const [s, setS] = usePersistedState<PlasterState>("calc-plaster-v1", INITIAL)
 
-  const wallArea = Math.max(0, num(area) - num(openings))
-  const t = num(thickness)
-  const dryKg = wallArea * num(consumption) * (t / 10)
-  const bags = num(bagWeight) > 0 ? Math.ceil(dryKg / num(bagWeight)) : 0
+  const wallArea = Math.max(0, num(s.area) - num(s.openings))
+  const t = num(s.thickness)
+  const dryKg = wallArea * num(s.consumption) * (t / 10)
+  const bags = num(s.bagWeight) > 0 ? Math.ceil(dryKg / num(s.bagWeight)) : 0
 
   return (
     <CalcLayout
@@ -22,11 +34,11 @@ export function PlasterCalculator() {
       reportText={[
         "СтройКалькулятор — Штукатурка",
         "",
-        `Площадь стен: ${fmt(num(area))} м²`,
-        `Вычесть проёмы: ${fmt(num(openings))} м²`,
+        `Площадь стен: ${fmt(num(s.area))} м²`,
+        `Вычесть проёмы: ${fmt(num(s.openings))} м²`,
         `Толщина слоя: ${fmt(t, 0)} мм`,
-        `Расход на 10 мм: ${fmt(num(consumption), 1)} кг/м²`,
-        `Вес мешка: ${fmt(num(bagWeight), 0)} кг`,
+        `Расход на 10 мм: ${fmt(num(s.consumption), 1)} кг/м²`,
+        `Вес мешка: ${fmt(num(s.bagWeight), 0)} кг`,
         "",
         `Площадь стен: ${fmt(wallArea)} м²`,
         `Сухая смесь: ${fmt(dryKg, 0)} кг`,
@@ -36,15 +48,42 @@ export function PlasterCalculator() {
         <>
           <Section title="Стены">
             <div className="grid gap-4 sm:grid-cols-3">
-              <NumberField label="Площадь стен" value={area} onChange={setArea} unit="м²" />
-              <NumberField label="Вычесть проёмы" value={openings} onChange={setOpenings} unit="м²" />
-              <NumberField label="Толщина слоя" value={thickness} onChange={setThickness} unit="мм" />
+              <NumberField
+                label="Площадь стен"
+                value={s.area}
+                onChange={(area) => setS((p) => ({ ...p, area }))}
+                unit="м²"
+              />
+              <NumberField
+                label="Вычесть проёмы"
+                value={s.openings}
+                onChange={(openings) => setS((p) => ({ ...p, openings }))}
+                unit="м²"
+              />
+              <NumberField
+                label="Толщина слоя"
+                value={s.thickness}
+                onChange={(thickness) => setS((p) => ({ ...p, thickness }))}
+                unit="мм"
+                step={1}
+              />
             </div>
           </Section>
           <Section title="Смесь" description="Расход обычно указан на упаковке на 10 мм слоя.">
             <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField label="Расход на 10мм" value={consumption} onChange={setConsumption} unit="кг/м²" />
-              <NumberField label="Вес мешка" value={bagWeight} onChange={setBagWeight} unit="кг" />
+              <NumberField
+                label="Расход на 10мм"
+                value={s.consumption}
+                onChange={(consumption) => setS((p) => ({ ...p, consumption }))}
+                unit="кг/м²"
+              />
+              <NumberField
+                label="Вес мешка"
+                value={s.bagWeight}
+                onChange={(bagWeight) => setS((p) => ({ ...p, bagWeight }))}
+                unit="кг"
+                step={1}
+              />
             </div>
           </Section>
         </>

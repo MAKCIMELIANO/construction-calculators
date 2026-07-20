@@ -1,19 +1,30 @@
 "use client"
 
-import { useState } from "react"
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
+import { usePersistedState } from "@/lib/use-persisted-state"
+
+type ScreedState = {
+  area: number | ""
+  thickness: number | ""
+  consumption: number | ""
+  bagWeight: number | ""
+}
+
+const INITIAL: ScreedState = {
+  area: 20,
+  thickness: 50,
+  consumption: 18,
+  bagWeight: 25,
+}
 
 export function ScreedCalculator() {
-  const [area, setArea] = useState<number | "">(20)
-  const [thickness, setThickness] = useState<number | "">(50) // мм
-  const [consumption, setConsumption] = useState<number | "">(18) // кг/м² на 10мм
-  const [bagWeight, setBagWeight] = useState<number | "">(25)
+  const [s, setS] = usePersistedState<ScreedState>("calc-screed-v1", INITIAL)
 
-  const a = num(area)
-  const t = num(thickness)
-  const volume = a * (t / 1000) // м³
-  const drySmesKg = a * num(consumption) * (t / 10)
-  const bags = num(bagWeight) > 0 ? Math.ceil(drySmesKg / num(bagWeight)) : 0
+  const a = num(s.area)
+  const t = num(s.thickness)
+  const volume = a * (t / 1000)
+  const drySmesKg = a * num(s.consumption) * (t / 10)
+  const bags = num(s.bagWeight) > 0 ? Math.ceil(drySmesKg / num(s.bagWeight)) : 0
 
   return (
     <CalcLayout
@@ -24,8 +35,8 @@ export function ScreedCalculator() {
         "",
         `Площадь: ${fmt(a)} м²`,
         `Толщина слоя: ${fmt(t, 0)} мм`,
-        `Расход на 10 мм: ${fmt(num(consumption), 0)} кг/м²`,
-        `Вес мешка: ${fmt(num(bagWeight), 0)} кг`,
+        `Расход на 10 мм: ${fmt(num(s.consumption), 0)} кг/м²`,
+        `Вес мешка: ${fmt(num(s.bagWeight), 0)} кг`,
         "",
         `Объём: ${fmt(volume, 3)} м³`,
         `Сухая смесь: ${fmt(drySmesKg, 0)} кг`,
@@ -35,14 +46,36 @@ export function ScreedCalculator() {
         <>
           <Section title="Параметры пола">
             <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField label="Площадь" value={area} onChange={setArea} unit="м²" />
-              <NumberField label="Толщина слоя" value={thickness} onChange={setThickness} unit="мм" />
+              <NumberField
+                label="Площадь"
+                value={s.area}
+                onChange={(area) => setS((p) => ({ ...p, area }))}
+                unit="м²"
+              />
+              <NumberField
+                label="Толщина слоя"
+                value={s.thickness}
+                onChange={(thickness) => setS((p) => ({ ...p, thickness }))}
+                unit="мм"
+                step={1}
+              />
             </div>
           </Section>
           <Section title="Смесь" description="Расход обычно указан на упаковке на 10 мм слоя.">
             <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField label="Расход на 10мм" value={consumption} onChange={setConsumption} unit="кг/м²" />
-              <NumberField label="Вес мешка" value={bagWeight} onChange={setBagWeight} unit="кг" />
+              <NumberField
+                label="Расход на 10мм"
+                value={s.consumption}
+                onChange={(consumption) => setS((p) => ({ ...p, consumption }))}
+                unit="кг/м²"
+              />
+              <NumberField
+                label="Вес мешка"
+                value={s.bagWeight}
+                onChange={(bagWeight) => setS((p) => ({ ...p, bagWeight }))}
+                unit="кг"
+                step={1}
+              />
             </div>
           </Section>
         </>

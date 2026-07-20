@@ -1,25 +1,37 @@
 "use client"
 
-import { useState } from "react"
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
+import { usePersistedState } from "@/lib/use-persisted-state"
+
+type WallpaperState = {
+  perimeter: number | ""
+  height: number | ""
+  openings: number | ""
+  rollWidth: number | ""
+  rollLength: number | ""
+  rapport: number | ""
+}
+
+const INITIAL: WallpaperState = {
+  perimeter: 14,
+  height: 2.7,
+  openings: 3.5,
+  rollWidth: 1.06,
+  rollLength: 10,
+  rapport: 0,
+}
 
 export function WallpaperCalculator() {
-  const [perimeter, setPerimeter] = useState<number | "">(14)
-  const [height, setHeight] = useState<number | "">(2.7)
-  const [openings, setOpenings] = useState<number | "">(3.5)
-  const [rollWidth, setRollWidth] = useState<number | "">(1.06)
-  const [rollLength, setRollLength] = useState<number | "">(10)
-  const [rapport, setRapport] = useState<number | "">(0)
+  const [s, setS] = usePersistedState<WallpaperState>("calc-wallpaper-v1", INITIAL)
 
-  const p = num(perimeter)
-  const h = num(height)
-  const wallArea = Math.max(0, p * h - num(openings))
+  const p = num(s.perimeter)
+  const h = num(s.height)
+  const wallArea = Math.max(0, p * h - num(s.openings))
 
-  const rw = num(rollWidth)
-  const rl = num(rollLength)
-  const rap = num(rapport)
+  const rw = num(s.rollWidth)
+  const rl = num(s.rollLength)
+  const rap = num(s.rapport)
 
-  // strips per roll accounting for pattern repeat
   const stripHeight = h + rap
   const stripsPerRoll = stripHeight > 0 ? Math.floor(rl / stripHeight) : 0
   const stripsNeeded = rw > 0 ? Math.ceil(p / rw) : 0
@@ -39,7 +51,7 @@ export function WallpaperCalculator() {
         "",
         `Периметр стен: ${fmt(p)} м`,
         `Высота: ${fmt(h)} м`,
-        `Площадь проёмов: ${fmt(num(openings))} м²`,
+        `Площадь проёмов: ${fmt(num(s.openings))} м²`,
         `Размер рулона: ${fmt(rw)} x ${fmt(rl)} м`,
         `Раппорт: ${fmt(rap)} м`,
         "",
@@ -54,16 +66,46 @@ export function WallpaperCalculator() {
         <>
           <Section title="Стены">
             <div className="grid gap-4 sm:grid-cols-3">
-              <NumberField label="Периметр стен" value={perimeter} onChange={setPerimeter} unit="м" />
-              <NumberField label="Высота" value={height} onChange={setHeight} unit="м" />
-              <NumberField label="Площадь проёмов" value={openings} onChange={setOpenings} unit="м²" />
+              <NumberField
+                label="Периметр стен"
+                value={s.perimeter}
+                onChange={(perimeter) => setS((prev) => ({ ...prev, perimeter }))}
+                unit="м"
+              />
+              <NumberField
+                label="Высота"
+                value={s.height}
+                onChange={(height) => setS((prev) => ({ ...prev, height }))}
+                unit="м"
+              />
+              <NumberField
+                label="Площадь проёмов"
+                value={s.openings}
+                onChange={(openings) => setS((prev) => ({ ...prev, openings }))}
+                unit="м²"
+              />
             </div>
           </Section>
           <Section title="Параметры рулона">
             <div className="grid gap-4 sm:grid-cols-3">
-              <NumberField label="Ширина рулона" value={rollWidth} onChange={setRollWidth} unit="м" />
-              <NumberField label="Длина рулона" value={rollLength} onChange={setRollLength} unit="м" />
-              <NumberField label="Раппорт (подгонка)" value={rapport} onChange={setRapport} unit="м" />
+              <NumberField
+                label="Ширина рулона"
+                value={s.rollWidth}
+                onChange={(rollWidth) => setS((prev) => ({ ...prev, rollWidth }))}
+                unit="м"
+              />
+              <NumberField
+                label="Длина рулона"
+                value={s.rollLength}
+                onChange={(rollLength) => setS((prev) => ({ ...prev, rollLength }))}
+                unit="м"
+              />
+              <NumberField
+                label="Раппорт (подгонка)"
+                value={s.rapport}
+                onChange={(rapport) => setS((prev) => ({ ...prev, rapport }))}
+                unit="м"
+              />
             </div>
           </Section>
         </>

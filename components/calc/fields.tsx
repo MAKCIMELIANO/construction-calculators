@@ -12,7 +12,7 @@ export function NumberField({
   onChange,
   unit,
   min = 0,
-  step = "any",
+  step = 0.1,
   placeholder,
   className,
 }: {
@@ -93,7 +93,12 @@ export function ResultRow({
       <span className={cn("text-sm", emphasize ? "font-semibold text-foreground" : "text-muted-foreground")}>
         {label}
       </span>
-      <span className={cn(emphasize ? "text-xl font-bold text-primary" : "text-base font-medium text-foreground")}>
+      <span
+        className={cn(
+          "text-right",
+          emphasize ? "text-xl font-bold text-primary" : "text-base font-medium text-foreground",
+        )}
+      >
         {value}
         {unit ? <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span> : null}
       </span>
