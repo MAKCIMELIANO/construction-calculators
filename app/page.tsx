@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import {
-  Calculator,
   DoorOpen,
   Layers,
   Menu,
@@ -13,6 +12,7 @@ import {
   X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Logo, LogoMark } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { RoomAreaCalculator } from "@/components/calc/room-area"
 import { WallpaperCalculator } from "@/components/calc/wallpaper"
@@ -46,18 +46,12 @@ export default function Page() {
         )}
       >
         <div className="flex items-center gap-2.5 border-b border-sidebar-border px-5 py-5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Calculator className="size-5" />
-          </div>
-          <div>
-            <p className="text-sm font-bold leading-tight text-sidebar-foreground">СтройКалькулятор</p>
-            <p className="text-xs text-muted-foreground">Расчёт материалов</p>
-          </div>
+          <Logo className="min-w-0 flex-1" />
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Закрыть меню"
-            className="ml-auto text-muted-foreground lg:hidden"
+            className="shrink-0 text-muted-foreground lg:hidden"
           >
             <X className="size-5" />
           </button>
@@ -133,7 +127,12 @@ export default function Page() {
           >
             <Menu className="size-5" />
           </button>
-          <span className="text-sm font-semibold text-foreground">{active.name}</span>
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <LogoMark className="size-4" />
+            </div>
+            <span className="truncate text-sm font-semibold text-foreground">{active.name}</span>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

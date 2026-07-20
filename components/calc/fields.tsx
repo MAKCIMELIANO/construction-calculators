@@ -101,18 +101,55 @@ export function ResultRow({
 }
 
 function ReportActions({ title, text }: { title: string; text: string }) {
-  const [copied, setCopied] = useState(false)
+  const [status, setStatus] = useState<"idle" | "copied" | "shared">("idle")
+
+  function flash(next: "copied" | "shared") {
+    setStatus(next)
+    window.setTimeout(() => setStatus("idle"), 1800)
+  }
 
   async function copyReport() {
-    await navigator.clipboard.writeText(text)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1600)
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text)
+      } else {
+        const area = document.createElement("textarea")
+        area.value = text
+        area.setAttribute("readonly", "")
+        area.style.position = "fixed"
+        area.style.left = "-9999px"
+        document.body.appendChild(area)
+        area.select()
+        document.execCommand("copy")
+        document.body.removeChild(area)
+      }
+      flash("copied")
+    } catch {
+      flash("copied")
+    }
   }
 
   async function shareReport() {
-    if (navigator.share) {
-      await navigator.share({ title, text })
-      return
+    const payload = {
+      title,
+      text,
+      url: window.location.href,
+    }
+
+    try {
+      if (typeof navigator.share === "function") {
+        const canShare =
+          typeof navigator.canShare !== "function" || navigator.canShare(payload)
+        if (canShare) {
+          await navigator.share(payload)
+          flash("shared")
+          return
+        }
+      }
+    } catch (err) {
+      // Пользователь закрыл меню шаринга — ничего не делаем
+      if (err instanceof DOMException && err.name === "AbortError") return
+      // На десктопе share часто «есть», но падает — уходим в копирование
     }
 
     await copyReport()
@@ -133,16 +170,24 @@ function ReportActions({ title, text }: { title: string; text: string }) {
         onClick={copyReport}
         className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
       >
-        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-        {copied ? "Скопировано" : "Копировать"}
+        {status === "copied" ? <Check className="size-4" /> : <Copy className="size-4" />}
+        {status === "copied" ? "Скопировано" : "Копировать"}
       </button>
       <button
         type="button"
         onClick={shareReport}
         className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
       >
-        <Share2 className="size-4" />
-        Поделиться
+        {status === "shared" || status === "copied" ? (
+          <Check className="size-4" />
+        ) : (
+          <Share2 className="size-4" />
+        )}
+        {status === "shared"
+          ? "Отправлено"
+          : status === "copied"
+            ? "Скопировано"
+            : "Поделиться"}
       </button>
     </div>
   )
