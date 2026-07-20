@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import type React from "react"
 import { Check, Copy, Printer, Share2 } from "lucide-react"
 import { SiTelegram, SiViber, SiWhatsapp } from "react-icons/si"
@@ -109,28 +110,18 @@ export function ResultRow({
 type ShareItemProps = {
   title: string
   description: string
-  onClick?: () => void
-  href?: string
-  /** Protocol links (viber://) should not use target=_blank */
-  external?: boolean
+  onClick: () => void
   icon: React.ReactNode
   iconClassName: string
 }
 
-function ShareMenuItem({
-  title,
-  description,
-  onClick,
-  href,
-  external = true,
-  icon,
-  iconClassName,
-}: ShareItemProps) {
-  const className =
-    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-
-  const body = (
-    <>
+function ShareMenuItem({ title, description, onClick, icon, iconClassName }: ShareItemProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+    >
       <span
         className={cn(
           "flex size-9 shrink-0 items-center justify-center rounded-lg text-white",
@@ -143,25 +134,6 @@ function ShareMenuItem({
         <span className="text-sm font-medium leading-tight">{title}</span>
         <span className="text-xs leading-tight text-muted-foreground">{description}</span>
       </span>
-    </>
-  )
-
-  if (href) {
-    return (
-      <a
-        href={href}
-        className={className}
-        onClick={onClick}
-        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      >
-        {body}
-      </a>
-    )
-  }
-
-  return (
-    <button type="button" onClick={onClick} className={className}>
-      {body}
     </button>
   )
 }
@@ -170,28 +142,88 @@ function isMobileDevice() {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 }
 
+/** Open share URL without relying on an <a> that React may unmount mid-click. */
+function openShareUrl(url: string, { newTab = true } = {}) {
+  if (newTab) {
+    const win = window.open(url, "_blank")
+    if (win) {
+      try {
+        win.opener = null
+      } catch {
+        // ignore
+      }
+      return true
+    }
+  }
+
+  // Fallback: temporary <a> outside React tree (popup blockers / protocol links)
+  const a = document.createElement("a")
+  a.href = url
+  if (newTab) {
+    a.target = "_blank"
+    a.rel = "noopener noreferrer"
+  }
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  return true
+}
+
 function ReportActions({ title, text }: { title: string; text: string }) {
   const [copied, setCopied] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [canNativeShare, setCanNativeShare] = useState(false)
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setCanNativeShare(typeof navigator.share === "function" && isMobileDevice())
   }, [])
 
+  useLayoutEffect(() => {
+    if (!menuOpen || !triggerRef.current) {
+      setMenuPos(null)
+      return
+    }
+
+    function updatePos() {
+      const rect = triggerRef.current!.getBoundingClientRect()
+      setMenuPos({
+        top: rect.top - 8,
+        left: rect.left,
+        width: rect.width,
+      })
+    }
+
+    updatePos()
+    window.addEventListener("resize", updatePos)
+    window.addEventListener("scroll", updatePos, true)
+    return () => {
+      window.removeEventListener("resize", updatePos)
+      window.removeEventListener("scroll", updatePos, true)
+    }
+  }, [menuOpen])
+
   useEffect(() => {
     if (!menuOpen) return
 
-    function onDocClick(event: MouseEvent) {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false)
-      }
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target as Node
+      if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return
+      setMenuOpen(false)
     }
 
-    // click (not mousedown): menu item navigation must run before we tear the menu down
-    document.addEventListener("click", onDocClick)
-    return () => document.removeEventListener("click", onDocClick)
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false)
+    }
+
+    document.addEventListener("pointerdown", onPointerDown)
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown)
+      document.removeEventListener("keydown", onKeyDown)
+    }
   }, [menuOpen])
 
   async function copyReport() {
@@ -217,6 +249,11 @@ function ReportActions({ title, text }: { title: string; text: string }) {
     window.setTimeout(() => setCopied(false), 1800)
   }
 
+  function shareTo(url: string, newTab = true) {
+    openShareUrl(url, { newTab })
+    setMenuOpen(false)
+  }
+
   async function shareNative() {
     setMenuOpen(false)
     try {
@@ -229,48 +266,21 @@ function ReportActions({ title, text }: { title: string; text: string }) {
     }
   }
 
-  const pageUrl = typeof window !== "undefined" ? window.location.href : ""
-  const telegramHref = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(text)}`
-  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(text)}`
-  const viberHref = `viber://forward?text=${encodeURIComponent(text)}`
-
-  return (
-    <div className="no-print mt-5 grid gap-2 border-t border-border pt-4 sm:grid-cols-3 lg:grid-cols-1">
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-      >
-        <Printer className="size-4" />
-        PDF
-      </button>
-      <button
-        type="button"
-        onClick={copyReport}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-      >
-        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-        {copied ? "Скопировано" : "Копировать"}
-      </button>
-
-      <div className="relative" ref={menuRef}>
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-expanded={menuOpen}
-          className={cn(
-            "inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors",
-            menuOpen
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border text-foreground hover:bg-accent",
-          )}
-        >
-          <Share2 className="size-4" />
-          Поделиться
-        </button>
-
-        {menuOpen ? (
-          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 rounded-xl border border-border bg-card p-2 shadow-lg">
+  const menu =
+    menuOpen && menuPos
+      ? createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              top: menuPos.top,
+              left: menuPos.left,
+              width: menuPos.width,
+              transform: "translateY(-100%)",
+              zIndex: 1000,
+            }}
+            className="rounded-xl border border-border bg-card p-2 shadow-lg"
+          >
             <p className="px-2 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Поделиться
             </p>
@@ -279,8 +289,11 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="Telegram"
                   description="Отправить в чат"
-                  href={telegramHref}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() =>
+                    shareTo(
+                      `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`,
+                    )
+                  }
                   icon={<SiTelegram className="size-4" aria-hidden />}
                   iconClassName="bg-[#26A5E4]"
                 />
@@ -289,8 +302,7 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="WhatsApp"
                   description="Отправить в чат"
-                  href={whatsappHref}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => shareTo(`https://wa.me/?text=${encodeURIComponent(text)}`)}
                   icon={<SiWhatsapp className="size-4" aria-hidden />}
                   iconClassName="bg-[#25D366]"
                 />
@@ -299,9 +311,9 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 <ShareMenuItem
                   title="Viber"
                   description="Отправить в чат"
-                  href={viberHref}
-                  external={false}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() =>
+                    shareTo(`viber://forward?text=${encodeURIComponent(text)}`, false)
+                  }
                   icon={<SiViber className="size-4" aria-hidden />}
                   iconClassName="bg-[#7360F2]"
                 />
@@ -327,8 +339,47 @@ function ReportActions({ title, text }: { title: string; text: string }) {
                 </li>
               ) : null}
             </ul>
-          </div>
-        ) : null}
+          </div>,
+          document.body,
+        )
+      : null
+
+  return (
+    <div className="no-print mt-5 grid gap-2 border-t border-border pt-4 sm:grid-cols-3 lg:grid-cols-1">
+      <button
+        type="button"
+        onClick={() => window.print()}
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+      >
+        <Printer className="size-4" />
+        PDF
+      </button>
+      <button
+        type="button"
+        onClick={copyReport}
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+      >
+        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+        {copied ? "Скопировано" : "Копировать"}
+      </button>
+
+      <div className="relative">
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={menuOpen}
+          className={cn(
+            "inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors",
+            menuOpen
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-foreground hover:bg-accent",
+          )}
+        >
+          <Share2 className="size-4" />
+          Поделиться
+        </button>
+        {menu}
       </div>
     </div>
   )
