@@ -100,6 +100,61 @@ export function ResultRow({
   )
 }
 
+function IconTelegram({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M21.8 4.3c.3-.9-.5-1.6-1.3-1.3L2.9 9.6c-.9.3-.9 1.6.1 1.8l4.4 1.1 1.7 5.3c.3.9 1.5 1.1 2.1.4l2.4-2.5 4.5 3.3c.8.6 1.9.1 2.1-.9l2.6-13.8ZM8.8 12.8l8.6-5.4c.2-.1.4.2.2.3l-7.1 6.5-.5 3.1-1.2-4.5Z" />
+    </svg>
+  )
+}
+
+function IconWhatsApp({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M12 2a9.9 9.9 0 0 0-8.5 14.9L2 22l5.3-1.4A9.9 9.9 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 20Zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.7.9-.1.2-.3.2-.5.1-.2-.1-.9-.3-1.8-1.1-.7-.6-1.1-1.3-1.3-1.5-.1-.2 0-.3.1-.4l.4-.5c.1-.1.1-.2.2-.4 0-.1 0-.3-.1-.4-.1-.1-.5-1.3-.7-1.7-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.3c.1.2 1.6 2.5 3.9 3.4.5.2 1 .4 1.3.5.6.2 1.1.1 1.5.1.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.1-.3-.2-.5-.3Z" />
+    </svg>
+  )
+}
+
+function IconViber({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M11.4 2C7 2.2 3.4 5.3 3 9.6c-.3 3.3.8 6.1 3.2 8l.1 2.9c0 .5.5.8 1 .6l3.1-1.3c.4.1.8.1 1.2.1 4.6 0 8.4-3.5 8.6-8 .2-4.7-3.7-8.6-9-9Zm4.9 11.6c-.2.6-.9 1.1-1.5 1.3-.4.1-1 .2-2.9-.6-2.3-1-3.8-3.4-3.9-3.6-.2-.2-1.2-1.6-1.2-3 0-1.4.7-2.1.9-2.3.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5.2.5.7 1.8.7 1.9.1.2.1.3 0 .5l-.3.4c-.1.1-.2.3-.1.5.1.2.5.8 1.1 1.3.7.7 1.4 1 1.6 1.1.2.1.4.1.5 0l.7-.8c.1-.2.3-.2.5-.1.2.1 1.4.7 1.6.8.3.1.4.2.5.3.1.2.1.9-.1 1.5Z" />
+    </svg>
+  )
+}
+
+type ShareItemProps = {
+  title: string
+  description: string
+  onClick: () => void
+  icon: React.ReactNode
+  iconClassName: string
+}
+
+function ShareMenuItem({ title, description, onClick, icon, iconClassName }: ShareItemProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+    >
+      <span
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-lg text-white",
+          iconClassName,
+        )}
+      >
+        {icon}
+      </span>
+      <span className="flex min-w-0 flex-col">
+        <span className="text-sm font-medium leading-tight">{title}</span>
+        <span className="text-xs leading-tight text-muted-foreground">{description}</span>
+      </span>
+    </button>
+  )
+}
+
 function isMobileDevice() {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 }
@@ -165,7 +220,6 @@ function ReportActions({ title, text }: { title: string; text: string }) {
   }
 
   function shareViber() {
-    // Deep-link Viber: на телефоне откроет приложение, на ПК — если установлен клиент
     openShare(`viber://forward?text=${encodeURIComponent(text)}`)
   }
 
@@ -205,51 +259,71 @@ function ReportActions({ title, text }: { title: string; text: string }) {
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
           aria-expanded={menuOpen}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          className={cn(
+            "inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors",
+            menuOpen
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-foreground hover:bg-accent",
+          )}
         >
           <Share2 className="size-4" />
           Поделиться
         </button>
 
         {menuOpen ? (
-          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 overflow-hidden rounded-lg border border-border bg-card shadow-lg">
-            <button
-              type="button"
-              onClick={shareTelegram}
-              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
-            >
-              Telegram
-            </button>
-            <button
-              type="button"
-              onClick={shareWhatsApp}
-              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
-            >
-              WhatsApp
-            </button>
-            <button
-              type="button"
-              onClick={shareViber}
-              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
-            >
-              Viber
-            </button>
-            <button
-              type="button"
-              onClick={copyReport}
-              className="flex w-full items-center px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
-            >
-              Скопировать текст
-            </button>
-            {canNativeShare ? (
-              <button
-                type="button"
-                onClick={shareNative}
-                className="flex w-full items-center border-t border-border px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
-              >
-                Ещё приложения…
-              </button>
-            ) : null}
+          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 rounded-xl border border-border bg-card p-2 shadow-lg">
+            <p className="px-2 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Поделиться
+            </p>
+            <ul className="flex flex-col gap-1">
+              <li>
+                <ShareMenuItem
+                  title="Telegram"
+                  description="Отправить в чат"
+                  onClick={shareTelegram}
+                  icon={<IconTelegram className="size-4" />}
+                  iconClassName="bg-[#2AABEE]"
+                />
+              </li>
+              <li>
+                <ShareMenuItem
+                  title="WhatsApp"
+                  description="Отправить в чат"
+                  onClick={shareWhatsApp}
+                  icon={<IconWhatsApp className="size-4" />}
+                  iconClassName="bg-[#25D366]"
+                />
+              </li>
+              <li>
+                <ShareMenuItem
+                  title="Viber"
+                  description="Отправить в чат"
+                  onClick={shareViber}
+                  icon={<IconViber className="size-4" />}
+                  iconClassName="bg-[#7360F2]"
+                />
+              </li>
+              <li>
+                <ShareMenuItem
+                  title={copied ? "Скопировано" : "Скопировать"}
+                  description="Текст расчёта"
+                  onClick={copyReport}
+                  icon={copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  iconClassName="bg-primary text-primary-foreground"
+                />
+              </li>
+              {canNativeShare ? (
+                <li>
+                  <ShareMenuItem
+                    title="Ещё приложения"
+                    description="Системное меню"
+                    onClick={shareNative}
+                    icon={<Share2 className="size-4" />}
+                    iconClassName="bg-muted text-foreground"
+                  />
+                </li>
+              ) : null}
+            </ul>
           </div>
         ) : null}
       </div>
