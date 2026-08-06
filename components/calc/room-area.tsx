@@ -46,32 +46,6 @@ export function RoomAreaCalculator() {
   const room = store.rooms.find((r) => r.id === store.activeId) ?? store.rooms[0]
   if (!room) return null
 
-  // #region agent log
-  if (typeof window !== "undefined") {
-    fetch("http://127.0.0.1:7521/ingest/75578629-efc8-4af4-a1a9-a560773acbbe", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "ce2b3f",
-      },
-      body: JSON.stringify({
-        sessionId: "ce2b3f",
-        runId: "pre-fix",
-        hypothesisId: "B",
-        location: "room-area.tsx:render",
-        message: "Room names at render",
-        data: {
-          activeId: store.activeId,
-          names: store.rooms.map((r) => r.name || "(empty)"),
-          displayLabel: room.name || t("common.unnamed"),
-          defaultName: DEFAULT_ROOM_STORE.rooms[0]?.name,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-  }
-  // #endregion
-
   const l = num(room.length)
   const w = num(room.width)
   const h = num(room.height)
