@@ -1,0 +1,53 @@
+---
+description: Контекст БудКалькулятора — архитектура, i18n, паттерны калькуляторов
+alwaysApply: true
+---
+
+# БудКалькулятор / construction-calculators
+
+Next.js App Router + React + TypeScript + Tailwind. UI: українська за замовчуванням, перемикач на російську.
+
+## Структура
+
+- `app/page.tsx` — сайдбар + список калькуляторів (усі змонтовані, `hidden`/`block`)
+- `components/calc/*.tsx` — калькулятори
+- `components/calc/fields.tsx` — `NumberField`, `Section`, `ResultRow`, `CalcLayout`, `num`, `fmt`
+- `components/calc/room-picker.tsx` — підстановка метрик кімнати
+- `lib/rooms.ts` — кімнати в `localStorage` (`calc-room-v1`)
+- `lib/use-persisted-state.ts` — збереження стану калькулятора
+- `lib/i18n/` — `uk.ts`, `ru.ts`, `context.tsx`, `format.ts`
+- `lib/handbook/` — довідник і константи для бетону / кучи (`BULK_MATERIALS`, `CONCRETE_GRADES`)
+- `lib/site.ts` — контакти автора (email, GitHub); футер `components/site-footer.tsx`
+
+## Новий калькулятор
+
+1. Файл `components/calc/<name>.tsx` за зразком `screed.tsx` / `drywall.tsx`
+2. `usePersistedState` з ключем `calc-<name>-v1`
+3. `RoomPicker` + `useT()` для всіх рядків UI
+4. Додати ключі в `lib/i18n/uk.ts` і `lib/i18n/ru.ts` (однакові ключі)
+5. Запис у `CALCULATORS` в `app/page.tsx`
+
+## Правила коду
+
+- Не хардкодити UI-текст — тільки `t("key")`
+- Формули не перекладати; числа через `fmt` (локаль з i18n)
+- Не чіпати `.next`
+- Prettier: `npm run format`
+- Коміти — лише коли користувач просить
+
+## Залежності і деплой (Vercel)
+
+Проєкт на Vercel збирається через **pnpm** (`pnpm-lock.yaml`). Якщо змінили `package.json` (додали/оновили deps) — **обовʼязково** синхронізувати lockfile і закомітити його разом із змінами, інакше деплой впаде з `ERR_PNPM_OUTDATED_LOCKFILE`.
+
+```bash
+CI=true npx pnpm@9 install --lockfile-only
+# потім: git add package.json pnpm-lock.yaml && commit
+```
+
+Не чіпати `pnpm-lock.yaml` «просто так»; оновлювати тільки коли змінився `package.json`.
+
+## Мова спілкування
+
+У чаті з користувачем завжди спілкуватися **російською**.  
+UI продукту: українська за замовчуванням, російська через перемикач.  
+Код і ключі i18n — англійською (`nav.paint`, `drywall.title`).

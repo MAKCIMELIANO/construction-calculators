@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 import {
+  BookOpen,
+  Cone,
+  Cylinder,
   DoorOpen,
   Layers,
   LayoutGrid,
@@ -23,6 +26,10 @@ import { TileCalculator } from "@/components/calc/tile"
 import { ScreedCalculator } from "@/components/calc/screed"
 import { PlasterCalculator } from "@/components/calc/plaster"
 import { DrywallCalculator } from "@/components/calc/drywall"
+import { ConcreteCalculator } from "@/components/calc/concrete"
+import { PileCalculator } from "@/components/calc/pile"
+import { Handbook } from "@/components/calc/handbook"
+import { SiteFooter } from "@/components/site-footer"
 import { useT } from "@/lib/i18n/context"
 
 const CALCULATORS = [
@@ -74,6 +81,27 @@ const CALCULATORS = [
     descKey: "nav.drywallDesc",
     icon: LayoutGrid,
     Component: DrywallCalculator,
+  },
+  {
+    id: "concrete",
+    nameKey: "nav.concrete",
+    descKey: "nav.concreteDesc",
+    icon: Cylinder,
+    Component: ConcreteCalculator,
+  },
+  {
+    id: "pile",
+    nameKey: "nav.pile",
+    descKey: "nav.pileDesc",
+    icon: Cone,
+    Component: PileCalculator,
+  },
+  {
+    id: "handbook",
+    nameKey: "nav.handbook",
+    descKey: "nav.handbookDesc",
+    icon: BookOpen,
+    Component: Handbook,
   },
 ] as const
 
@@ -191,6 +219,7 @@ export default function Page() {
             )
           })}
         </main>
+        <SiteFooter />
       </div>
     </div>
   )
