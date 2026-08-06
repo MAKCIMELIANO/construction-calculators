@@ -1,16 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import {
-  DoorOpen,
-  Layers,
-  Menu,
-  PaintBucket,
-  Ruler,
-  Square,
-  Wallpaper,
-  X,
-} from "lucide-react"
+import { DoorOpen, Layers, Menu, PaintBucket, Ruler, Square, Wallpaper, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Logo, LogoMark } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -20,14 +11,59 @@ import { PaintCalculator } from "@/components/calc/paint"
 import { TileCalculator } from "@/components/calc/tile"
 import { ScreedCalculator } from "@/components/calc/screed"
 import { PlasterCalculator } from "@/components/calc/plaster"
+import { LayoutGrid } from "lucide-react"
+import { DrywallCalculator } from "@/components/calc/drywall"
 
 const CALCULATORS = [
-  { id: "room", name: "Площадь комнаты", desc: "Стены, пол, потолок", icon: Ruler, Component: RoomAreaCalculator },
-  { id: "wallpaper", name: "Обои", desc: "Рулоны", icon: Wallpaper, Component: WallpaperCalculator },
-  { id: "paint", name: "Краска", desc: "Литры и банки", icon: PaintBucket, Component: PaintCalculator },
-  { id: "tile", name: "Плитка / ламинат", desc: "Штуки и упаковки", icon: Square, Component: TileCalculator },
-  { id: "screed", name: "Стяжка / смесь", desc: "Объём и мешки", icon: Layers, Component: ScreedCalculator },
-  { id: "plaster", name: "Штукатурка", desc: "Мешки смеси", icon: DoorOpen, Component: PlasterCalculator },
+  {
+    id: "room",
+    name: "Площадь комнаты",
+    desc: "Стены, пол, потолок",
+    icon: Ruler,
+    Component: RoomAreaCalculator,
+  },
+  {
+    id: "wallpaper",
+    name: "Обои",
+    desc: "Рулоны",
+    icon: Wallpaper,
+    Component: WallpaperCalculator,
+  },
+  {
+    id: "paint",
+    name: "Краска",
+    desc: "Литры и банки",
+    icon: PaintBucket,
+    Component: PaintCalculator,
+  },
+  {
+    id: "tile",
+    name: "Плитка / ламинат",
+    desc: "Штуки и упаковки",
+    icon: Square,
+    Component: TileCalculator,
+  },
+  {
+    id: "screed",
+    name: "Стяжка / смесь",
+    desc: "Объём и мешки",
+    icon: Layers,
+    Component: ScreedCalculator,
+  },
+  {
+    id: "plaster",
+    name: "Штукатурка",
+    desc: "Мешки смеси",
+    icon: DoorOpen,
+    Component: PlasterCalculator,
+  },
+  {
+    id: "drywall",
+    name: "Гипсокартон",
+    desc: "Листы и саморезы",
+    icon: LayoutGrid,
+    Component: DrywallCalculator,
+  },
 ] as const
 
 export default function Page() {
@@ -37,28 +73,28 @@ export default function Page() {
   const active = CALCULATORS.find((c) => c.id === activeId) ?? CALCULATORS[0]
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="bg-background flex min-h-screen">
       {/* Sidebar */}
       <aside
         className={cn(
-          "no-print fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar transition-transform lg:static lg:translate-x-0",
+          "no-print border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r transition-transform lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center gap-2.5 border-b border-sidebar-border px-5 py-5">
+        <div className="border-sidebar-border flex items-center gap-2.5 border-b px-5 py-5">
           <Logo className="min-w-0 flex-1" />
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Закрыть меню"
-            className="shrink-0 text-muted-foreground lg:hidden"
+            className="text-muted-foreground shrink-0 lg:hidden"
           >
             <X className="size-5" />
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3">
-          <p className="px-2 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="text-muted-foreground px-2 pt-1 pb-2 text-xs font-semibold tracking-wide uppercase">
             Калькуляторы
           </p>
           <ul className="flex flex-col gap-1">
@@ -82,7 +118,7 @@ export default function Page() {
                   >
                     <Icon className="size-5 shrink-0" />
                     <span className="flex flex-col">
-                      <span className="text-sm font-medium leading-tight">{c.name}</span>
+                      <span className="text-sm leading-tight font-medium">{c.name}</span>
                       <span
                         className={cn(
                           "text-xs leading-tight",
@@ -98,9 +134,9 @@ export default function Page() {
             })}
           </ul>
         </nav>
-        <div className="border-t border-sidebar-border p-3">
+        <div className="border-sidebar-border border-t p-3">
           <ThemeToggle />
-          <p className="mt-2 px-2 text-xs text-muted-foreground">
+          <p className="text-muted-foreground mt-2 px-2 text-xs">
             Значения по умолчанию — примерные, уточняйте по факту.
           </p>
         </div>
@@ -112,26 +148,26 @@ export default function Page() {
           type="button"
           aria-label="Закрыть меню"
           onClick={() => setMobileOpen(false)}
-          className="no-print fixed inset-0 z-30 bg-foreground/40 lg:hidden"
+          className="no-print bg-foreground/40 fixed inset-0 z-30 lg:hidden"
         />
       ) : null}
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print flex items-center gap-3 border-b border-border px-4 py-3 lg:hidden">
+        <header className="no-print border-border flex items-center gap-3 border-b px-4 py-3 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
             aria-label="Открыть меню"
-            className="flex size-9 items-center justify-center rounded-lg border border-border text-foreground"
+            className="border-border text-foreground flex size-9 items-center justify-center rounded-lg border"
           >
             <Menu className="size-5" />
           </button>
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
               <LogoMark className="size-4" />
             </div>
-            <span className="truncate text-sm font-semibold text-foreground">{active.name}</span>
+            <span className="text-foreground truncate text-sm font-semibold">{active.name}</span>
           </div>
         </header>
 

@@ -45,7 +45,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       disabled={!mounted}
       aria-label={isDark ? "Включить светлую тему" : "Включить тёмную тему"}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground disabled:opacity-60",
+        "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors disabled:opacity-60",
         className,
       )}
     >

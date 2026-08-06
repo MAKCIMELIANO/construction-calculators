@@ -145,8 +145,8 @@ export function RoomAreaCalculator() {
                       onClick={() => setStore((prev) => ({ ...prev, activeId: r.id }))}
                       className={
                         isActive
-                          ? "flex min-w-0 flex-1 items-center rounded-lg bg-primary px-3 py-2.5 text-left text-sm font-medium text-primary-foreground"
-                          : "flex min-w-0 flex-1 items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                          ? "bg-primary text-primary-foreground flex min-w-0 flex-1 items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium"
+                          : "text-foreground hover:bg-accent flex min-w-0 flex-1 items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors"
                       }
                     >
                       <span className="truncate">{r.name || "Без названия"}</span>
@@ -156,7 +156,7 @@ export function RoomAreaCalculator() {
                       onClick={() => removeRoom(r.id)}
                       disabled={store.rooms.length <= 1}
                       aria-label={`Удалить ${r.name}`}
-                      className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:pointer-events-none disabled:opacity-40"
+                      className="border-border text-muted-foreground hover:border-destructive hover:text-destructive flex size-10 shrink-0 items-center justify-center rounded-lg border transition-colors disabled:pointer-events-none disabled:opacity-40"
                     >
                       <Trash2 className="size-4" />
                     </button>
@@ -167,7 +167,7 @@ export function RoomAreaCalculator() {
             <button
               type="button"
               onClick={addRoom}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              className="border-border text-foreground hover:bg-accent mt-3 inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
             >
               <Plus className="size-4" /> Добавить комнату
             </button>
@@ -175,13 +175,13 @@ export function RoomAreaCalculator() {
 
           <Section title="Название">
             <label className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-foreground">Как назвать</span>
+              <span className="text-foreground text-sm font-medium">Как назвать</span>
               <input
                 type="text"
                 value={room.name}
                 onChange={(e) => patchRoom({ name: e.target.value })}
                 placeholder="Например: Зал, Спальня"
-                className="h-11 w-full rounded-lg border border-input bg-card px-3 text-base text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="border-input bg-card text-foreground focus:border-primary focus:ring-primary/20 h-11 w-full rounded-lg border px-3 text-base transition-colors outline-none focus:ring-2"
               />
             </label>
           </Section>
@@ -209,19 +209,24 @@ export function RoomAreaCalculator() {
             </div>
           </Section>
 
-          <Section title="Окна и двери" description="Добавьте проёмы, чтобы вычесть их площадь из стен.">
+          <Section
+            title="Окна и двери"
+            description="Добавьте проёмы, чтобы вычесть их площадь из стен."
+          >
             <div className="flex flex-col gap-3">
               {room.openings.map((op) => (
                 <div
                   key={op.id}
-                  className="grid grid-cols-1 gap-3 rounded-lg border border-border bg-background p-3 sm:grid-cols-2 lg:grid-cols-[7rem_1fr_1fr_1fr_auto] lg:items-end"
+                  className="border-border bg-background grid grid-cols-1 gap-3 rounded-lg border p-3 sm:grid-cols-2 lg:grid-cols-[7rem_1fr_1fr_1fr_auto] lg:items-end"
                 >
                   <label className="flex flex-col gap-1.5">
-                    <span className="text-sm font-medium text-foreground">Тип</span>
+                    <span className="text-foreground text-sm font-medium">Тип</span>
                     <select
                       value={op.kind}
-                      onChange={(e) => updateOpening(op.id, { kind: e.target.value as Opening["kind"] })}
-                      className="h-11 rounded-lg border border-input bg-card px-2 text-base text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      onChange={(e) =>
+                        updateOpening(op.id, { kind: e.target.value as Opening["kind"] })
+                      }
+                      className="border-input bg-card text-foreground focus:border-primary focus:ring-primary/20 h-11 rounded-lg border px-2 text-base outline-none focus:ring-2"
                     >
                       <option value="window">Окно</option>
                       <option value="door">Дверь</option>
@@ -250,7 +255,7 @@ export function RoomAreaCalculator() {
                     type="button"
                     onClick={() => removeOpening(op.id)}
                     aria-label="Удалить проём"
-                    className="flex h-11 w-full items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive sm:col-span-2 lg:col-span-1 lg:mb-0.5 lg:w-11"
+                    className="border-border text-muted-foreground hover:border-destructive hover:text-destructive flex h-11 w-full items-center justify-center rounded-lg border transition-colors sm:col-span-2 lg:col-span-1 lg:mb-0.5 lg:w-11"
                   >
                     <Trash2 className="size-4" />
                   </button>
@@ -261,19 +266,19 @@ export function RoomAreaCalculator() {
               <button
                 type="button"
                 onClick={() => addOpening("window")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                className="border-border text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
               >
                 <Plus className="size-4" /> Добавить окно
               </button>
               <button
                 type="button"
                 onClick={() => addOpening("door")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                className="border-border text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
               >
                 <Plus className="size-4" /> Добавить дверь
               </button>
             </div>
-            <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-foreground">
+            <label className="text-foreground mt-4 flex cursor-pointer items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={room.subtractFromWalls}

@@ -26,7 +26,7 @@ export function NumberField({
 }) {
   return (
     <label className={cn("flex flex-col gap-1.5", className)}>
-      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className="text-foreground text-sm font-medium">{label}</span>
       <div className="relative">
         <input
           type="number"
@@ -39,10 +39,10 @@ export function NumberField({
             const v = e.target.value
             onChange(v === "" ? "" : Number(v))
           }}
-          className="h-11 w-full rounded-lg border border-input bg-card px-3 pr-12 text-base text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="border-input bg-card text-foreground focus:border-primary focus:ring-primary/20 h-11 w-full rounded-lg border px-3 pr-12 text-base transition-colors outline-none focus:ring-2"
         />
         {unit ? (
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+          <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm">
             {unit}
           </span>
         ) : null}
@@ -63,9 +63,11 @@ export function Section({
   className?: string
 }) {
   return (
-    <section className={cn("rounded-xl border border-border bg-card p-5", className)}>
-      {title ? <h3 className="mb-1 text-base font-semibold text-foreground">{title}</h3> : null}
-      {description ? <p className="mb-4 text-sm text-muted-foreground text-pretty">{description}</p> : null}
+    <section className={cn("border-border bg-card rounded-xl border p-5", className)}>
+      {title ? <h3 className="text-foreground mb-1 text-base font-semibold">{title}</h3> : null}
+      {description ? (
+        <p className="text-muted-foreground mb-4 text-sm text-pretty">{description}</p>
+      ) : null}
       {children}
     </section>
   )
@@ -86,20 +88,27 @@ export function ResultRow({
     <div
       className={cn(
         "flex items-baseline justify-between gap-4 py-2",
-        emphasize ? "border-t border-border pt-3" : "",
+        emphasize ? "border-border border-t pt-3" : "",
       )}
     >
-      <span className={cn("text-sm", emphasize ? "font-semibold text-foreground" : "text-muted-foreground")}>
+      <span
+        className={cn(
+          "text-sm",
+          emphasize ? "text-foreground font-semibold" : "text-muted-foreground",
+        )}
+      >
         {label}
       </span>
       <span
         className={cn(
           "text-right",
-          emphasize ? "text-xl font-bold text-primary" : "text-base font-medium text-foreground",
+          emphasize ? "text-primary text-xl font-bold" : "text-foreground text-base font-medium",
         )}
       >
         {value}
-        {unit ? <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span> : null}
+        {unit ? (
+          <span className="text-muted-foreground ml-1 text-sm font-normal">{unit}</span>
+        ) : null}
       </span>
     </div>
   )
@@ -131,11 +140,11 @@ function ReportActions({ text }: { text: string }) {
   }
 
   return (
-    <div className="no-print mt-5 grid gap-2 border-t border-border pt-4 sm:grid-cols-2 lg:grid-cols-1">
+    <div className="no-print border-border mt-5 grid gap-2 border-t pt-4 sm:grid-cols-2 lg:grid-cols-1">
       <button
         type="button"
         onClick={() => window.print()}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        className="border-border text-foreground hover:bg-accent inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors"
       >
         <Printer className="size-4" />
         PDF
@@ -143,7 +152,7 @@ function ReportActions({ text }: { text: string }) {
       <button
         type="button"
         onClick={copyReport}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        className="border-border text-foreground hover:bg-accent inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors"
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
         {copied ? "Скопировано" : "Копировать"}
@@ -168,14 +177,16 @@ export function CalcLayout({
   return (
     <div className="mx-auto max-w-5xl">
       <header className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground text-balance">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground text-pretty">{description}</p>
+        <h2 className="text-foreground text-2xl font-bold text-balance">{title}</h2>
+        <p className="text-muted-foreground mt-1 text-sm text-pretty">{description}</p>
       </header>
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <div className="flex flex-col gap-5">{inputs}</div>
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-xl border border-border bg-card p-5">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Результат</h3>
+          <div className="border-border bg-card rounded-xl border p-5">
+            <h3 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
+              Результат
+            </h3>
             {results}
             {reportText ? <ReportActions text={reportText} /> : null}
           </div>
