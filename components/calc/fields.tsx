@@ -4,6 +4,8 @@ import { useState } from "react"
 import type React from "react"
 import { Check, Copy, Printer } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useT } from "@/lib/i18n/context"
+import { fmtNumber } from "@/lib/i18n/format"
 
 export function NumberField({
   label,
@@ -115,6 +117,7 @@ export function ResultRow({
 }
 
 function ReportActions({ text }: { text: string }) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
 
   async function copyReport() {
@@ -155,7 +158,7 @@ function ReportActions({ text }: { text: string }) {
         className="border-border text-foreground hover:bg-accent inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors"
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-        {copied ? "Скопировано" : "Копировать"}
+        {copied ? t("common.copied") : t("common.copy")}
       </button>
     </div>
   )
@@ -174,6 +177,8 @@ export function CalcLayout({
   results: React.ReactNode
   reportText?: string
 }) {
+  const t = useT()
+
   return (
     <div className="mx-auto max-w-5xl">
       <header className="mb-6">
@@ -185,7 +190,7 @@ export function CalcLayout({
         <aside className="lg:sticky lg:top-6 lg:self-start">
           <div className="border-border bg-card rounded-xl border p-5">
             <h3 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
-              Результат
+              {t("common.result")}
             </h3>
             {results}
             {reportText ? <ReportActions text={reportText} /> : null}
@@ -201,6 +206,5 @@ export function num(v: number | ""): number {
 }
 
 export function fmt(v: number, digits = 2): string {
-  if (!Number.isFinite(v)) return "0"
-  return v.toLocaleString("ru-RU", { maximumFractionDigits: digits })
+  return fmtNumber(v, digits)
 }

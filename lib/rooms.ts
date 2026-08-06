@@ -51,7 +51,7 @@ export const DEFAULT_ROOM_STORE: RoomStore = {
   rooms: [
     {
       id: "room-default",
-      name: "Зал",
+      name: "Вітальня",
       length: 4,
       width: 3,
       height: 2.7,
@@ -79,7 +79,7 @@ export function computeRoomMetrics(room: Room): RoomMetrics {
 
   return {
     id: room.id,
-    name: room.name || "Без названия",
+    name: room.name,
     length,
     width,
     height,

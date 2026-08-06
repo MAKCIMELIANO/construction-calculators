@@ -1,11 +1,12 @@
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
+import { Providers } from "@/components/providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "СтройКалькулятор — расчёт материалов",
+  title: "БудКалькулятор — розрахунок матеріалів",
   description:
-    "Калькуляторы для строительных работ: площадь комнаты, обои, краска, плитка, стяжка, штукатурка.",
+    "Калькулятори для будівельних робіт: площа кімнати, шпалери, фарба, плитка, стяжка, штукатурка, гіпсокартон.",
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     apple: "/icon.svg",
@@ -28,12 +29,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="uk" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="antialiased">
-        {children}
+        <Providers>{children}</Providers>
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>

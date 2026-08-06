@@ -3,6 +3,7 @@
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
 import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+import { useT } from "@/lib/i18n/context"
 
 function round1(n: number) {
   return Math.round(n * 10) / 10
@@ -27,6 +28,7 @@ const INITIAL: WallpaperState = {
 }
 
 export function WallpaperCalculator() {
+  const t = useT()
   const [s, setS] = usePersistedState<WallpaperState>("calc-wallpaper-v1", INITIAL)
 
   const p = num(s.perimeter)
@@ -49,28 +51,28 @@ export function WallpaperCalculator() {
 
   return (
     <CalcLayout
-      title="Обои"
-      description="Расчёт количества рулонов обоев по периметру стен, высоте и размеру рулона."
+      title={t("wallpaper.title")}
+      description={t("wallpaper.description")}
       reportText={[
-        "СтройКалькулятор — Обои",
+        t("wallpaper.reportHeader"),
         "",
-        `Периметр стен: ${fmt(p)} м`,
-        `Высота: ${fmt(h)} м`,
-        `Площадь проёмов: ${fmt(num(s.openings))} м²`,
-        `Размер рулона: ${fmt(rw)} x ${fmt(rl)} м`,
-        `Раппорт: ${fmt(rap)} м`,
+        t("wallpaper.report.perimeter", { value: fmt(p) }),
+        t("wallpaper.report.height", { value: fmt(h) }),
+        t("wallpaper.report.openings", { value: fmt(num(s.openings)) }),
+        t("wallpaper.report.rollSize", { w: fmt(rw), l: fmt(rl) }),
+        t("wallpaper.report.rapport", { value: fmt(rap) }),
         "",
-        `Площадь стен: ${fmt(wallArea)} м²`,
-        `Полос на рулон: ${stripsPerRoll} шт`,
-        `Нужно полос: ${stripsNeeded} шт`,
-        `Рулонов по полосам: ${rollsByStrips} шт`,
-        `Рулонов по площади: ${rollsByArea} шт`,
-        `Купить рулонов: ${rolls} шт`,
+        t("wallpaper.report.wallArea", { value: fmt(wallArea) }),
+        t("wallpaper.report.stripsPerRoll", { value: stripsPerRoll }),
+        t("wallpaper.report.stripsNeeded", { value: stripsNeeded }),
+        t("wallpaper.report.rollsByStrips", { value: rollsByStrips }),
+        t("wallpaper.report.rollsByArea", { value: rollsByArea }),
+        t("wallpaper.report.buy", { value: rolls }),
       ].join("\n")}
       inputs={
         <>
           <RoomPicker
-            description="Подставит периметр, высоту и площадь проёмов из выбранной комнаты."
+            description={t("roomPicker.desc.wallpaper")}
             onApply={(m) =>
               setS((prev) => ({
                 ...prev,
@@ -80,47 +82,47 @@ export function WallpaperCalculator() {
               }))
             }
           />
-          <Section title="Стены">
+          <Section title={t("wallpaper.sections.walls")}>
             <div className="grid gap-4 sm:grid-cols-3">
               <NumberField
-                label="Периметр стен"
+                label={t("wallpaper.fields.perimeter")}
                 value={s.perimeter}
                 onChange={(perimeter) => setS((prev) => ({ ...prev, perimeter }))}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Высота"
+                label={t("wallpaper.fields.height")}
                 value={s.height}
                 onChange={(height) => setS((prev) => ({ ...prev, height }))}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Площадь проёмов"
+                label={t("wallpaper.fields.openings")}
                 value={s.openings}
                 onChange={(openings) => setS((prev) => ({ ...prev, openings }))}
-                unit="м²"
+                unit={t("common.unit.m2")}
               />
             </div>
           </Section>
-          <Section title="Параметры рулона">
+          <Section title={t("wallpaper.sections.roll")}>
             <div className="grid gap-4 sm:grid-cols-3">
               <NumberField
-                label="Ширина рулона"
+                label={t("wallpaper.fields.rollWidth")}
                 value={s.rollWidth}
                 onChange={(rollWidth) => setS((prev) => ({ ...prev, rollWidth }))}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Длина рулона"
+                label={t("wallpaper.fields.rollLength")}
                 value={s.rollLength}
                 onChange={(rollLength) => setS((prev) => ({ ...prev, rollLength }))}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Раппорт (подгонка)"
+                label={t("wallpaper.fields.rapport")}
                 value={s.rapport}
                 onChange={(rapport) => setS((prev) => ({ ...prev, rapport }))}
-                unit="м"
+                unit={t("common.unit.m")}
               />
             </div>
           </Section>
@@ -128,12 +130,12 @@ export function WallpaperCalculator() {
       }
       results={
         <div>
-          <ResultRow label="Площадь стен" value={fmt(wallArea)} unit="м²" />
-          <ResultRow label="Полос на рулон" value={stripsPerRoll} unit="шт" />
-          <ResultRow label="Нужно полос" value={stripsNeeded} unit="шт" />
-          <ResultRow label="Рулонов (по полосам)" value={rollsByStrips} unit="шт" />
-          <ResultRow label="Рулонов (по площади)" value={rollsByArea} unit="шт" />
-          <ResultRow label="Купить рулонов" value={rolls} unit="шт" emphasize />
+          <ResultRow label={t("wallpaper.results.wallArea")} value={fmt(wallArea)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("wallpaper.results.stripsPerRoll")} value={stripsPerRoll} unit={t("common.unit.pcs")} />
+          <ResultRow label={t("wallpaper.results.stripsNeeded")} value={stripsNeeded} unit={t("common.unit.pcs")} />
+          <ResultRow label={t("wallpaper.results.rollsByStrips")} value={rollsByStrips} unit={t("common.unit.pcs")} />
+          <ResultRow label={t("wallpaper.results.rollsByArea")} value={rollsByArea} unit={t("common.unit.pcs")} />
+          <ResultRow label={t("wallpaper.results.buy")} value={rolls} unit={t("common.unit.pcs")} emphasize />
         </div>
       }
     />

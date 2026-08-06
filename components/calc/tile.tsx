@@ -3,6 +3,7 @@
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
 import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+import { useT } from "@/lib/i18n/context"
 
 function round1(n: number) {
   return Math.round(n * 10) / 10
@@ -25,6 +26,7 @@ const INITIAL: TileState = {
 }
 
 export function TileCalculator() {
+  const t = useT()
   const [s, setS] = usePersistedState<TileState>("calc-tile-v1", INITIAL)
 
   const a = num(s.area)
@@ -36,60 +38,63 @@ export function TileCalculator() {
 
   return (
     <CalcLayout
-      title="Плитка / ламинат"
-      description="Количество плиток и упаковок на пол или стену с запасом на подрезку."
+      title={t("tile.title")}
+      description={t("tile.description")}
       reportText={[
-        "СтройКалькулятор — Плитка / ламинат",
+        t("tile.reportHeader"),
         "",
-        `Площадь: ${fmt(a)} м²`,
-        `Запас на подрезку: ${fmt(num(s.reserve), 0)}%`,
-        `Размер плитки / доски: ${fmt(num(s.tileWidth), 0)} x ${fmt(num(s.tileHeight), 0)} см`,
-        `Штук в упаковке: ${fmt(num(s.perPack), 0)}`,
+        t("tile.report.area", { value: fmt(a) }),
+        t("tile.report.reserve", { value: fmt(num(s.reserve), 0) }),
+        t("tile.report.size", {
+          w: fmt(num(s.tileWidth), 0),
+          h: fmt(num(s.tileHeight), 0),
+        }),
+        t("tile.report.perPack", { value: fmt(num(s.perPack), 0) }),
         "",
-        `Площадь 1 шт: ${fmt(tileArea, 3)} м²`,
-        `С запасом: ${fmt(withReserve)} м²`,
-        `Штук нужно: ${tilesNeeded} шт`,
-        `Упаковок купить: ${packs} уп`,
-        `Покрытая площадь: ${fmt(coveredArea)} м²`,
+        t("tile.report.tileArea", { value: fmt(tileArea, 3) }),
+        t("tile.report.withReserve", { value: fmt(withReserve) }),
+        t("tile.report.tiles", { value: tilesNeeded }),
+        t("tile.report.packs", { value: packs }),
+        t("tile.report.covered", { value: fmt(coveredArea) }),
       ].join("\n")}
       inputs={
         <>
           <RoomPicker
-            description="Подставит площадь пола комнаты."
+            description={t("roomPicker.desc.floor")}
             onApply={(m) => setS((p) => ({ ...p, area: round1(m.floor) }))}
           />
-          <Section title="Площадь укладки">
+          <Section title={t("tile.sections.area")}>
             <div className="grid gap-4 sm:grid-cols-2">
               <NumberField
-                label="Площадь"
+                label={t("tile.fields.area")}
                 value={s.area}
                 onChange={(area) => setS((p) => ({ ...p, area }))}
-                unit="м²"
+                unit={t("common.unit.m2")}
               />
               <NumberField
-                label="Запас на подрезку"
+                label={t("tile.fields.reserve")}
                 value={s.reserve}
                 onChange={(reserve) => setS((p) => ({ ...p, reserve }))}
-                unit="%"
+                unit={t("common.unit.percent")}
               />
             </div>
           </Section>
-          <Section title="Размер плитки / доски">
+          <Section title={t("tile.sections.size")}>
             <div className="grid gap-4 sm:grid-cols-3">
               <NumberField
-                label="Ширина"
+                label={t("tile.fields.width")}
                 value={s.tileWidth}
                 onChange={(tileWidth) => setS((p) => ({ ...p, tileWidth }))}
-                unit="см"
+                unit={t("common.unit.cm")}
               />
               <NumberField
-                label="Длина"
+                label={t("tile.fields.length")}
                 value={s.tileHeight}
                 onChange={(tileHeight) => setS((p) => ({ ...p, tileHeight }))}
-                unit="см"
+                unit={t("common.unit.cm")}
               />
               <NumberField
-                label="Штук в упаковке"
+                label={t("tile.fields.perPack")}
                 value={s.perPack}
                 onChange={(perPack) => setS((p) => ({ ...p, perPack }))}
                 min={1}
@@ -101,11 +106,11 @@ export function TileCalculator() {
       }
       results={
         <div>
-          <ResultRow label="Площадь 1 шт" value={fmt(tileArea, 3)} unit="м²" />
-          <ResultRow label="С запасом" value={fmt(withReserve)} unit="м²" />
-          <ResultRow label="Штук нужно" value={tilesNeeded} unit="шт" emphasize />
-          <ResultRow label="Упаковок купить" value={packs} unit="уп" emphasize />
-          <ResultRow label="Покрытая площадь" value={fmt(coveredArea)} unit="м²" />
+          <ResultRow label={t("tile.results.tileArea")} value={fmt(tileArea, 3)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("tile.results.withReserve")} value={fmt(withReserve)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("tile.results.tiles")} value={tilesNeeded} unit={t("common.unit.pcs")} emphasize />
+          <ResultRow label={t("tile.results.packs")} value={packs} unit={t("common.unit.pack")} emphasize />
+          <ResultRow label={t("tile.results.covered")} value={fmt(coveredArea)} unit={t("common.unit.m2")} />
         </div>
       }
     />

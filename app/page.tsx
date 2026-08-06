@@ -1,72 +1,84 @@
 "use client"
 
 import { useState } from "react"
-import { DoorOpen, Layers, Menu, PaintBucket, Ruler, Square, Wallpaper, X } from "lucide-react"
+import {
+  DoorOpen,
+  Layers,
+  LayoutGrid,
+  Menu,
+  PaintBucket,
+  Ruler,
+  Square,
+  Wallpaper,
+  X,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Logo, LogoMark } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LocaleToggle } from "@/components/locale-toggle"
 import { RoomAreaCalculator } from "@/components/calc/room-area"
 import { WallpaperCalculator } from "@/components/calc/wallpaper"
 import { PaintCalculator } from "@/components/calc/paint"
 import { TileCalculator } from "@/components/calc/tile"
 import { ScreedCalculator } from "@/components/calc/screed"
 import { PlasterCalculator } from "@/components/calc/plaster"
-import { LayoutGrid } from "lucide-react"
 import { DrywallCalculator } from "@/components/calc/drywall"
+import { useT } from "@/lib/i18n/context"
 
 const CALCULATORS = [
   {
     id: "room",
-    name: "Площадь комнаты",
-    desc: "Стены, пол, потолок",
+    nameKey: "nav.room",
+    descKey: "nav.roomDesc",
     icon: Ruler,
     Component: RoomAreaCalculator,
   },
   {
     id: "wallpaper",
-    name: "Обои",
-    desc: "Рулоны",
+    nameKey: "nav.wallpaper",
+    descKey: "nav.wallpaperDesc",
     icon: Wallpaper,
     Component: WallpaperCalculator,
   },
   {
     id: "paint",
-    name: "Краска",
-    desc: "Литры и банки",
+    nameKey: "nav.paint",
+    descKey: "nav.paintDesc",
     icon: PaintBucket,
     Component: PaintCalculator,
   },
   {
     id: "tile",
-    name: "Плитка / ламинат",
-    desc: "Штуки и упаковки",
+    nameKey: "nav.tile",
+    descKey: "nav.tileDesc",
     icon: Square,
     Component: TileCalculator,
   },
   {
     id: "screed",
-    name: "Стяжка / смесь",
-    desc: "Объём и мешки",
+    nameKey: "nav.screed",
+    descKey: "nav.screedDesc",
     icon: Layers,
     Component: ScreedCalculator,
   },
   {
     id: "plaster",
-    name: "Штукатурка",
-    desc: "Мешки смеси",
+    nameKey: "nav.plaster",
+    descKey: "nav.plasterDesc",
     icon: DoorOpen,
     Component: PlasterCalculator,
   },
   {
     id: "drywall",
-    name: "Гипсокартон",
-    desc: "Листы и саморезы",
+    nameKey: "nav.drywall",
+    descKey: "nav.drywallDesc",
     icon: LayoutGrid,
     Component: DrywallCalculator,
   },
 ] as const
 
 export default function Page() {
+  const t = useT()
   const [activeId, setActiveId] = useState<(typeof CALCULATORS)[number]["id"]>("room")
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -74,7 +86,6 @@ export default function Page() {
 
   return (
     <div className="bg-background flex min-h-screen">
-      {/* Sidebar */}
       <aside
         className={cn(
           "no-print border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r transition-transform lg:static lg:translate-x-0",
@@ -86,7 +97,7 @@ export default function Page() {
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            aria-label="Закрыть меню"
+            aria-label={t("nav.closeMenu")}
             className="text-muted-foreground shrink-0 lg:hidden"
           >
             <X className="size-5" />
@@ -95,7 +106,7 @@ export default function Page() {
 
         <nav className="flex-1 overflow-y-auto p-3">
           <p className="text-muted-foreground px-2 pt-1 pb-2 text-xs font-semibold tracking-wide uppercase">
-            Калькуляторы
+            {t("nav.calculators")}
           </p>
           <ul className="flex flex-col gap-1">
             {CALCULATORS.map((c) => {
@@ -118,14 +129,14 @@ export default function Page() {
                   >
                     <Icon className="size-5 shrink-0" />
                     <span className="flex flex-col">
-                      <span className="text-sm leading-tight font-medium">{c.name}</span>
+                      <span className="text-sm leading-tight font-medium">{t(c.nameKey)}</span>
                       <span
                         className={cn(
                           "text-xs leading-tight",
                           isActive ? "text-sidebar-primary-foreground/80" : "text-muted-foreground",
                         )}
                       >
-                        {c.desc}
+                        {t(c.descKey)}
                       </span>
                     </span>
                   </button>
@@ -135,30 +146,27 @@ export default function Page() {
           </ul>
         </nav>
         <div className="border-sidebar-border border-t p-3">
-          <ThemeToggle />
-          <p className="text-muted-foreground mt-2 px-2 text-xs">
-            Значения по умолчанию — примерные, уточняйте по факту.
-          </p>
+          <LocaleToggle />
+          <ThemeToggle className="mt-1" />
+          <p className="text-muted-foreground mt-2 px-2 text-xs">{t("nav.disclaimer")}</p>
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
       {mobileOpen ? (
         <button
           type="button"
-          aria-label="Закрыть меню"
+          aria-label={t("nav.closeMenu")}
           onClick={() => setMobileOpen(false)}
           className="no-print bg-foreground/40 fixed inset-0 z-30 lg:hidden"
         />
       ) : null}
 
-      {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print border-border flex items-center gap-3 border-b px-4 py-3 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            aria-label="Открыть меню"
+            aria-label={t("nav.openMenu")}
             className="border-border text-foreground flex size-9 items-center justify-center rounded-lg border"
           >
             <Menu className="size-5" />
@@ -167,7 +175,7 @@ export default function Page() {
             <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
               <LogoMark className="size-4" />
             </div>
-            <span className="text-foreground truncate text-sm font-semibold">{active.name}</span>
+            <span className="text-foreground truncate text-sm font-semibold">{t(active.nameKey)}</span>
           </div>
         </header>
 

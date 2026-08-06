@@ -12,6 +12,7 @@ import {
   type Room,
   type RoomStore,
 } from "@/lib/rooms"
+import { useT } from "@/lib/i18n/context"
 
 let idCounter = 0
 function newId(prefix = "id") {
@@ -35,6 +36,7 @@ function createRoom(name: string): Room {
 }
 
 export function RoomAreaCalculator() {
+  const t = useT()
   const [store, setStore] = usePersistedState<RoomStore>(ROOM_STORAGE_KEY, DEFAULT_ROOM_STORE)
 
   useEffect(() => {
@@ -61,6 +63,7 @@ export function RoomAreaCalculator() {
   )
   const wallsNet = Math.max(0, wallsGross - (room.subtractFromWalls ? openingsArea : 0))
   const totalSurface = wallsNet + floor + ceiling
+  const roomName = room.name || t("common.unnamed")
 
   function patchRoom(patch: Partial<Room>) {
     setStore((prev) => ({
@@ -91,7 +94,7 @@ export function RoomAreaCalculator() {
   }
 
   function addRoom() {
-    const next = createRoom(`Комната ${store.rooms.length + 1}`)
+    const next = createRoom(t("room.defaultName", { n: store.rooms.length + 1 }))
     setStore((prev) => ({
       activeId: next.id,
       rooms: [...prev.rooms, next],
@@ -109,32 +112,39 @@ export function RoomAreaCalculator() {
 
   return (
     <CalcLayout
-      title="Площадь комнаты"
-      description="Считает пол, потолок и стены. Можно завести несколько комнат (зал, спальня…) — данные сохраняются на этом устройстве."
+      title={t("room.title")}
+      description={t("room.description")}
       reportText={[
-        "СтройКалькулятор — Площадь комнаты",
+        t("room.reportHeader"),
         "",
-        `Комната: ${room.name || "Без названия"}`,
-        `Размеры: ${fmt(l)} x ${fmt(w)} x ${fmt(h)} м`,
-        `Вычитать проёмы: ${room.subtractFromWalls ? "да" : "нет"}`,
+        t("room.report.room", { name: roomName }),
+        t("room.report.dimensions", { dims: `${fmt(l)} x ${fmt(w)} x ${fmt(h)}` }),
+        t("room.report.subtract", {
+          value: room.subtractFromWalls ? t("common.yes") : t("common.no"),
+        }),
         "",
-        "Проёмы:",
-        ...room.openings.map(
-          (op, index) =>
-            `${index + 1}. ${op.kind === "window" ? "Окно" : "Дверь"}: ${fmt(num(op.width))} x ${fmt(num(op.height))} м, ${fmt(num(op.count), 0)} шт`,
+        t("room.report.openingsTitle"),
+        ...room.openings.map((op, index) =>
+          t("room.report.openingLine", {
+            n: index + 1,
+            kind: op.kind === "window" ? t("room.kind.window") : t("room.kind.door"),
+            w: fmt(num(op.width)),
+            h: fmt(num(op.height)),
+            count: fmt(num(op.count), 0),
+          }),
         ),
         "",
-        `Пол: ${fmt(floor)} м²`,
-        `Потолок: ${fmt(ceiling)} м²`,
-        `Периметр: ${fmt(perimeter)} м`,
-        `Стены без вычета: ${fmt(wallsGross)} м²`,
-        `Проёмы: ${fmt(openingsArea)} м²`,
-        `Стены чистые: ${fmt(wallsNet)} м²`,
-        `Всего поверхностей: ${fmt(totalSurface)} м²`,
+        t("room.report.floor", { value: fmt(floor) }),
+        t("room.report.ceiling", { value: fmt(ceiling) }),
+        t("room.report.perimeter", { value: fmt(perimeter) }),
+        t("room.report.wallsGross", { value: fmt(wallsGross) }),
+        t("room.report.openings", { value: fmt(openingsArea) }),
+        t("room.report.wallsNet", { value: fmt(wallsNet) }),
+        t("room.report.totalSurface", { value: fmt(totalSurface) }),
       ].join("\n")}
       inputs={
         <>
-          <Section title="Комнаты" description="Добавьте комнаты объекта и укажите размеры.">
+          <Section title={t("room.sections.rooms")} description={t("room.sections.roomsDesc")}>
             <div className="flex flex-col gap-1">
               {store.rooms.map((r) => {
                 const isActive = r.id === room.id
@@ -149,13 +159,13 @@ export function RoomAreaCalculator() {
                           : "text-foreground hover:bg-accent flex min-w-0 flex-1 items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors"
                       }
                     >
-                      <span className="truncate">{r.name || "Без названия"}</span>
+                      <span className="truncate">{r.name || t("common.unnamed")}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => removeRoom(r.id)}
                       disabled={store.rooms.length <= 1}
-                      aria-label={`Удалить ${r.name}`}
+                      aria-label={t("room.aria.removeRoom", { name: r.name || t("common.unnamed") })}
                       className="border-border text-muted-foreground hover:border-destructive hover:text-destructive flex size-10 shrink-0 items-center justify-center rounded-lg border transition-colors disabled:pointer-events-none disabled:opacity-40"
                     >
                       <Trash2 className="size-4" />
@@ -169,50 +179,47 @@ export function RoomAreaCalculator() {
               onClick={addRoom}
               className="border-border text-foreground hover:bg-accent mt-3 inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
             >
-              <Plus className="size-4" /> Добавить комнату
+              <Plus className="size-4" /> {t("room.actions.addRoom")}
             </button>
           </Section>
 
-          <Section title="Название">
+          <Section title={t("room.sections.name")}>
             <label className="flex flex-col gap-1.5">
-              <span className="text-foreground text-sm font-medium">Как назвать</span>
+              <span className="text-foreground text-sm font-medium">{t("room.fields.name")}</span>
               <input
                 type="text"
                 value={room.name}
                 onChange={(e) => patchRoom({ name: e.target.value })}
-                placeholder="Например: Зал, Спальня"
+                placeholder={t("room.fields.namePlaceholder")}
                 className="border-input bg-card text-foreground focus:border-primary focus:ring-primary/20 h-11 w-full rounded-lg border px-3 text-base transition-colors outline-none focus:ring-2"
               />
             </label>
           </Section>
 
-          <Section title="Размеры комнаты">
+          <Section title={t("room.sections.dimensions")}>
             <div className="grid gap-4 sm:grid-cols-3">
               <NumberField
-                label="Длина"
+                label={t("room.fields.length")}
                 value={room.length}
                 onChange={(length) => patchRoom({ length })}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Ширина"
+                label={t("room.fields.width")}
                 value={room.width}
                 onChange={(width) => patchRoom({ width })}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Высота"
+                label={t("room.fields.height")}
                 value={room.height}
                 onChange={(height) => patchRoom({ height })}
-                unit="м"
+                unit={t("common.unit.m")}
               />
             </div>
           </Section>
 
-          <Section
-            title="Окна и двери"
-            description="Добавьте проёмы, чтобы вычесть их площадь из стен."
-          >
+          <Section title={t("room.sections.openings")} description={t("room.sections.openingsDesc")}>
             <div className="flex flex-col gap-3">
               {room.openings.map((op) => (
                 <div
@@ -220,7 +227,7 @@ export function RoomAreaCalculator() {
                   className="border-border bg-background grid grid-cols-1 gap-3 rounded-lg border p-3 sm:grid-cols-2 lg:grid-cols-[7rem_1fr_1fr_1fr_auto] lg:items-end"
                 >
                   <label className="flex flex-col gap-1.5">
-                    <span className="text-foreground text-sm font-medium">Тип</span>
+                    <span className="text-foreground text-sm font-medium">{t("room.fields.type")}</span>
                     <select
                       value={op.kind}
                       onChange={(e) =>
@@ -228,24 +235,24 @@ export function RoomAreaCalculator() {
                       }
                       className="border-input bg-card text-foreground focus:border-primary focus:ring-primary/20 h-11 rounded-lg border px-2 text-base outline-none focus:ring-2"
                     >
-                      <option value="window">Окно</option>
-                      <option value="door">Дверь</option>
+                      <option value="window">{t("room.kind.window")}</option>
+                      <option value="door">{t("room.kind.door")}</option>
                     </select>
                   </label>
                   <NumberField
-                    label="Ширина"
+                    label={t("room.fields.width")}
                     value={op.width}
                     onChange={(v) => updateOpening(op.id, { width: v })}
-                    unit="м"
+                    unit={t("common.unit.m")}
                   />
                   <NumberField
-                    label="Высота"
+                    label={t("room.fields.height")}
                     value={op.height}
                     onChange={(v) => updateOpening(op.id, { height: v })}
-                    unit="м"
+                    unit={t("common.unit.m")}
                   />
                   <NumberField
-                    label="Кол-во"
+                    label={t("room.fields.count")}
                     value={op.count}
                     onChange={(v) => updateOpening(op.id, { count: v })}
                     min={1}
@@ -254,7 +261,7 @@ export function RoomAreaCalculator() {
                   <button
                     type="button"
                     onClick={() => removeOpening(op.id)}
-                    aria-label="Удалить проём"
+                    aria-label={t("room.aria.removeOpening")}
                     className="border-border text-muted-foreground hover:border-destructive hover:text-destructive flex h-11 w-full items-center justify-center rounded-lg border transition-colors sm:col-span-2 lg:col-span-1 lg:mb-0.5 lg:w-11"
                   >
                     <Trash2 className="size-4" />
@@ -268,14 +275,14 @@ export function RoomAreaCalculator() {
                 onClick={() => addOpening("window")}
                 className="border-border text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
               >
-                <Plus className="size-4" /> Добавить окно
+                <Plus className="size-4" /> {t("room.actions.addWindow")}
               </button>
               <button
                 type="button"
                 onClick={() => addOpening("door")}
                 className="border-border text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
               >
-                <Plus className="size-4" /> Добавить дверь
+                <Plus className="size-4" /> {t("room.actions.addDoor")}
               </button>
             </div>
             <label className="text-foreground mt-4 flex cursor-pointer items-center gap-2 text-sm">
@@ -285,30 +292,64 @@ export function RoomAreaCalculator() {
                 onChange={(e) => patchRoom({ subtractFromWalls: e.target.checked })}
                 className="size-4 accent-[var(--primary)]"
               />
-              Вычитать проёмы из площади стен
+              {t("room.actions.subtractOpenings")}
             </label>
           </Section>
 
-          <Section title="Стены по отдельности">
+          <Section title={t("room.sections.wallsSeparate")}>
             <div className="grid gap-2 sm:grid-cols-2">
-              <ResultRow label={`Стена 1 (${fmt(l)} × ${fmt(h)})`} value={fmt(wallA)} unit="м²" />
-              <ResultRow label={`Стена 2 (${fmt(l)} × ${fmt(h)})`} value={fmt(wallA)} unit="м²" />
-              <ResultRow label={`Стена 3 (${fmt(w)} × ${fmt(h)})`} value={fmt(wallB)} unit="м²" />
-              <ResultRow label={`Стена 4 (${fmt(w)} × ${fmt(h)})`} value={fmt(wallB)} unit="м²" />
+              <ResultRow
+                label={t("room.results.wall", { n: 1, dims: `${fmt(l)} × ${fmt(h)}` })}
+                value={fmt(wallA)}
+                unit={t("common.unit.m2")}
+              />
+              <ResultRow
+                label={t("room.results.wall", { n: 2, dims: `${fmt(l)} × ${fmt(h)}` })}
+                value={fmt(wallA)}
+                unit={t("common.unit.m2")}
+              />
+              <ResultRow
+                label={t("room.results.wall", { n: 3, dims: `${fmt(w)} × ${fmt(h)}` })}
+                value={fmt(wallB)}
+                unit={t("common.unit.m2")}
+              />
+              <ResultRow
+                label={t("room.results.wall", { n: 4, dims: `${fmt(w)} × ${fmt(h)}` })}
+                value={fmt(wallB)}
+                unit={t("common.unit.m2")}
+              />
             </div>
           </Section>
         </>
       }
       results={
         <div>
-          <ResultRow label="Комната" value={room.name || "—"} />
-          <ResultRow label="Пол" value={fmt(floor)} unit="м²" />
-          <ResultRow label="Потолок" value={fmt(ceiling)} unit="м²" />
-          <ResultRow label="Периметр" value={fmt(perimeter)} unit="м" />
-          <ResultRow label="Стены (без вычета)" value={fmt(wallsGross)} unit="м²" />
-          <ResultRow label="Проёмы" value={fmt(openingsArea)} unit="м²" />
-          <ResultRow label="Стены (чистые)" value={fmt(wallsNet)} unit="м²" emphasize />
-          <ResultRow label="Всего поверхностей" value={fmt(totalSurface)} unit="м²" emphasize />
+          <ResultRow label={t("room.results.room")} value={roomName} />
+          <ResultRow label={t("room.results.floor")} value={fmt(floor)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("room.results.ceiling")} value={fmt(ceiling)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("room.results.perimeter")} value={fmt(perimeter)} unit={t("common.unit.m")} />
+          <ResultRow
+            label={t("room.results.wallsGross")}
+            value={fmt(wallsGross)}
+            unit={t("common.unit.m2")}
+          />
+          <ResultRow
+            label={t("room.results.openings")}
+            value={fmt(openingsArea)}
+            unit={t("common.unit.m2")}
+          />
+          <ResultRow
+            label={t("room.results.wallsNet")}
+            value={fmt(wallsNet)}
+            unit={t("common.unit.m2")}
+            emphasize
+          />
+          <ResultRow
+            label={t("room.results.totalSurface")}
+            value={fmt(totalSurface)}
+            unit={t("common.unit.m2")}
+            emphasize
+          />
         </div>
       }
     />

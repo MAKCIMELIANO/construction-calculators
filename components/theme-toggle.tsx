@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Moon, Sun } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useT } from "@/lib/i18n/context"
 
 type Theme = "light" | "dark"
 
@@ -13,6 +14,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
+  const t = useT()
   const [theme, setTheme] = useState<Theme>("light")
   const [mounted, setMounted] = useState(false)
 
@@ -43,14 +45,14 @@ export function ThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={toggle}
       disabled={!mounted}
-      aria-label={isDark ? "Включить светлую тему" : "Включить тёмную тему"}
+      aria-label={isDark ? t("theme.enableLight") : t("theme.enableDark")}
       className={cn(
         "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors disabled:opacity-60",
         className,
       )}
     >
       {isDark ? <Sun className="size-5 shrink-0" /> : <Moon className="size-5 shrink-0" />}
-      <span className="text-sm font-medium">{isDark ? "Светлая тема" : "Тёмная тема"}</span>
+      <span className="text-sm font-medium">{isDark ? t("theme.light") : t("theme.dark")}</span>
     </button>
   )
 }

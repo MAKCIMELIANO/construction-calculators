@@ -3,6 +3,7 @@
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
 import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+import { useT } from "@/lib/i18n/context"
 
 function round1(n: number) {
   return Math.round(n * 10) / 10
@@ -25,6 +26,7 @@ const INITIAL: PaintState = {
 }
 
 export function PaintCalculator() {
+  const t = useT()
   const [s, setS] = usePersistedState<PaintState>("calc-paint-v1", INITIAL)
 
   const paintArea = Math.max(0, num(s.area) - num(s.openings))
@@ -33,25 +35,25 @@ export function PaintCalculator() {
 
   return (
     <CalcLayout
-      title="Краска"
-      description="Расчёт литров краски и количества банок по площади, расходу и числу слоёв."
+      title={t("paint.title")}
+      description={t("paint.description")}
       reportText={[
-        "СтройКалькулятор — Краска",
+        t("paint.reportHeader"),
         "",
-        `Площадь окраски: ${fmt(num(s.area))} м²`,
-        `Вычесть проёмы: ${fmt(num(s.openings))} м²`,
-        `Слоёв: ${fmt(num(s.coats), 0)}`,
-        `Расход за слой: ${fmt(num(s.consumption), 3)} л/м²`,
-        `Объём банки: ${fmt(num(s.canVolume))} л`,
+        t("paint.report.area", { value: fmt(num(s.area)) }),
+        t("paint.report.openings", { value: fmt(num(s.openings)) }),
+        t("paint.report.coats", { value: fmt(num(s.coats), 0) }),
+        t("paint.report.consumption", { value: fmt(num(s.consumption), 3) }),
+        t("paint.report.canVolume", { value: fmt(num(s.canVolume)) }),
         "",
-        `Площадь: ${fmt(paintArea)} м²`,
-        `Требуется краски: ${fmt(litres)} л`,
-        `Банок купить: ${cans} шт`,
+        t("paint.report.paintArea", { value: fmt(paintArea) }),
+        t("paint.report.litres", { value: fmt(litres) }),
+        t("paint.report.cans", { value: cans }),
       ].join("\n")}
       inputs={
         <>
           <RoomPicker
-            description="Подставит площадь стен (без вычета) и площадь проёмов."
+            description={t("roomPicker.desc.wallsGrossOpenings")}
             onApply={(m) =>
               setS((p) => ({
                 ...p,
@@ -60,42 +62,42 @@ export function PaintCalculator() {
               }))
             }
           />
-          <Section title="Поверхность">
+          <Section title={t("paint.sections.surface")}>
             <div className="grid gap-4 sm:grid-cols-2">
               <NumberField
-                label="Площадь окраски"
+                label={t("paint.fields.area")}
                 value={s.area}
                 onChange={(area) => setS((p) => ({ ...p, area }))}
-                unit="м²"
+                unit={t("common.unit.m2")}
               />
               <NumberField
-                label="Вычесть проёмы"
+                label={t("paint.fields.openings")}
                 value={s.openings}
                 onChange={(openings) => setS((p) => ({ ...p, openings }))}
-                unit="м²"
+                unit={t("common.unit.m2")}
               />
             </div>
           </Section>
-          <Section title="Параметры краски">
+          <Section title={t("paint.sections.params")}>
             <div className="grid gap-4 sm:grid-cols-3">
               <NumberField
-                label="Слоёв"
+                label={t("paint.fields.coats")}
                 value={s.coats}
                 onChange={(coats) => setS((p) => ({ ...p, coats }))}
                 min={1}
                 step={1}
               />
               <NumberField
-                label="Расход за слой"
+                label={t("paint.fields.consumption")}
                 value={s.consumption}
                 onChange={(consumption) => setS((p) => ({ ...p, consumption }))}
-                unit="л/м²"
+                unit={t("common.unit.lPerM2")}
               />
               <NumberField
-                label="Объём банки"
+                label={t("paint.fields.canVolume")}
                 value={s.canVolume}
                 onChange={(canVolume) => setS((p) => ({ ...p, canVolume }))}
-                unit="л"
+                unit={t("common.unit.l")}
               />
             </div>
           </Section>
@@ -103,9 +105,9 @@ export function PaintCalculator() {
       }
       results={
         <div>
-          <ResultRow label="Площадь" value={fmt(paintArea)} unit="м²" />
-          <ResultRow label="Требуется краски" value={fmt(litres)} unit="л" emphasize />
-          <ResultRow label="Банок купить" value={cans} unit="шт" emphasize />
+          <ResultRow label={t("paint.results.area")} value={fmt(paintArea)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("paint.results.litres")} value={fmt(litres)} unit={t("common.unit.l")} emphasize />
+          <ResultRow label={t("paint.results.cans")} value={cans} unit={t("common.unit.pcs")} emphasize />
         </div>
       }
     />

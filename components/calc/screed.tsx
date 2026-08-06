@@ -3,6 +3,7 @@
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
 import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+import { useT } from "@/lib/i18n/context"
 
 function round1(n: number) {
   return Math.round(n * 10) / 10
@@ -23,66 +24,67 @@ const INITIAL: ScreedState = {
 }
 
 export function ScreedCalculator() {
+  const t = useT()
   const [s, setS] = usePersistedState<ScreedState>("calc-screed-v1", INITIAL)
 
   const a = num(s.area)
-  const t = num(s.thickness)
-  const volume = a * (t / 1000)
-  const drySmesKg = a * num(s.consumption) * (t / 10)
+  const tmm = num(s.thickness)
+  const volume = a * (tmm / 1000)
+  const drySmesKg = a * num(s.consumption) * (tmm / 10)
   const bags = num(s.bagWeight) > 0 ? Math.ceil(drySmesKg / num(s.bagWeight)) : 0
 
   return (
     <CalcLayout
-      title="Стяжка / смесь"
-      description="Объём стяжки и количество мешков сухой смеси по площади и толщине слоя."
+      title={t("screed.title")}
+      description={t("screed.description")}
       reportText={[
-        "СтройКалькулятор — Стяжка / смесь",
+        t("screed.reportHeader"),
         "",
-        `Площадь: ${fmt(a)} м²`,
-        `Толщина слоя: ${fmt(t, 0)} мм`,
-        `Расход на 10 мм: ${fmt(num(s.consumption), 0)} кг/м²`,
-        `Вес мешка: ${fmt(num(s.bagWeight), 0)} кг`,
+        t("screed.report.area", { value: fmt(a) }),
+        t("screed.report.thickness", { value: fmt(tmm, 0) }),
+        t("screed.report.consumption", { value: fmt(num(s.consumption), 0) }),
+        t("screed.report.bagWeight", { value: fmt(num(s.bagWeight), 0) }),
         "",
-        `Объём: ${fmt(volume, 3)} м³`,
-        `Сухая смесь: ${fmt(drySmesKg, 0)} кг`,
-        `Мешков купить: ${bags} шт`,
+        t("screed.report.volume", { value: fmt(volume, 3) }),
+        t("screed.report.dry", { value: fmt(drySmesKg, 0) }),
+        t("screed.report.bags", { value: bags }),
       ].join("\n")}
       inputs={
         <>
           <RoomPicker
-            description="Подставит площадь пола комнаты."
+            description={t("roomPicker.desc.floor")}
             onApply={(m) => setS((p) => ({ ...p, area: round1(m.floor) }))}
           />
-          <Section title="Параметры пола">
+          <Section title={t("screed.sections.floor")}>
             <div className="grid gap-4 sm:grid-cols-2">
               <NumberField
-                label="Площадь"
+                label={t("screed.fields.area")}
                 value={s.area}
                 onChange={(area) => setS((p) => ({ ...p, area }))}
-                unit="м²"
+                unit={t("common.unit.m2")}
               />
               <NumberField
-                label="Толщина слоя"
+                label={t("screed.fields.thickness")}
                 value={s.thickness}
                 onChange={(thickness) => setS((p) => ({ ...p, thickness }))}
-                unit="мм"
+                unit={t("common.unit.mm")}
                 step={1}
               />
             </div>
           </Section>
-          <Section title="Смесь" description="Расход обычно указан на упаковке на 10 мм слоя.">
+          <Section title={t("screed.sections.mix")} description={t("screed.sections.mixDesc")}>
             <div className="grid gap-4 sm:grid-cols-2">
               <NumberField
-                label="Расход на 10мм"
+                label={t("screed.fields.consumption")}
                 value={s.consumption}
                 onChange={(consumption) => setS((p) => ({ ...p, consumption }))}
-                unit="кг/м²"
+                unit={t("common.unit.kgPerM2")}
               />
               <NumberField
-                label="Вес мешка"
+                label={t("screed.fields.bagWeight")}
                 value={s.bagWeight}
                 onChange={(bagWeight) => setS((p) => ({ ...p, bagWeight }))}
-                unit="кг"
+                unit={t("common.unit.kg")}
                 step={1}
               />
             </div>
@@ -91,9 +93,9 @@ export function ScreedCalculator() {
       }
       results={
         <div>
-          <ResultRow label="Объём" value={fmt(volume, 3)} unit="м³" />
-          <ResultRow label="Сухая смесь" value={fmt(drySmesKg, 0)} unit="кг" />
-          <ResultRow label="Мешков купить" value={bags} unit="шт" emphasize />
+          <ResultRow label={t("screed.results.volume")} value={fmt(volume, 3)} unit={t("common.unit.m3")} />
+          <ResultRow label={t("screed.results.dry")} value={fmt(drySmesKg, 0)} unit={t("common.unit.kg")} />
+          <ResultRow label={t("screed.results.bags")} value={bags} unit={t("common.unit.pcs")} emphasize />
         </div>
       }
     />

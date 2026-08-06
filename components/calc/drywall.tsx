@@ -3,6 +3,7 @@
 import { CalcLayout, NumberField, ResultRow, Section, fmt, num } from "./fields"
 import { RoomPicker } from "./room-picker"
 import { usePersistedState } from "@/lib/use-persisted-state"
+import { useT } from "@/lib/i18n/context"
 
 function round1(n: number) {
   return Math.round(n * 10) / 10
@@ -27,6 +28,7 @@ const INITIAL: DrywallState = {
 }
 
 export function DrywallCalculator() {
+  const t = useT()
   const [s, setS] = usePersistedState<DrywallState>("calc-drywall-v1", INITIAL)
 
   const wallArea = Math.max(0, num(s.area) - num(s.openings))
@@ -37,25 +39,28 @@ export function DrywallCalculator() {
 
   return (
     <CalcLayout
-      title="Гипсокартон"
-      description="Количество листов ГКЛ и саморезов по площади стен с запасом на раскрой."
+      title={t("drywall.title")}
+      description={t("drywall.description")}
       reportText={[
-        "СтройКалькулятор — Гипсокартон",
+        t("drywall.reportHeader"),
         "",
-        `Площадь стен: ${fmt(num(s.area))} м²`,
-        `Вычесть проёмы: ${fmt(num(s.openings))} м²`,
-        `Лист: ${fmt(num(s.sheetWidth), 2)} × ${fmt(num(s.sheetHeight), 2)} м`,
-        `Запас: ${fmt(num(s.wastePercent), 0)} %`,
+        t("drywall.report.area", { value: fmt(num(s.area)) }),
+        t("drywall.report.openings", { value: fmt(num(s.openings)) }),
+        t("drywall.report.sheet", {
+          w: fmt(num(s.sheetWidth), 2),
+          h: fmt(num(s.sheetHeight), 2),
+        }),
+        t("drywall.report.waste", { value: fmt(num(s.wastePercent), 0) }),
         "",
-        `Площадь стен: ${fmt(wallArea)} м²`,
-        `С запасом: ${fmt(withWaste)} м²`,
-        `Листов купить: ${sheets} шт`,
-        `Саморезы: ${fmt(screws, 0)} шт`,
+        t("drywall.report.wallArea", { value: fmt(wallArea) }),
+        t("drywall.report.withWaste", { value: fmt(withWaste) }),
+        t("drywall.report.sheets", { value: sheets }),
+        t("drywall.report.screws", { value: fmt(screws, 0) }),
       ].join("\n")}
       inputs={
         <>
           <RoomPicker
-            description="Подставит площадь стен и проёмов."
+            description={t("roomPicker.desc.wallsOpenings")}
             onApply={(m) =>
               setS((p) => ({
                 ...p,
@@ -64,51 +69,48 @@ export function DrywallCalculator() {
               }))
             }
           />
-          <Section title="Стены">
+          <Section title={t("drywall.sections.walls")}>
             <div className="grid gap-4 sm:grid-cols-2">
               <NumberField
-                label="Площадь стен"
+                label={t("drywall.fields.area")}
                 value={s.area}
                 onChange={(area) => setS((p) => ({ ...p, area }))}
-                unit="м²"
+                unit={t("common.unit.m2")}
               />
               <NumberField
-                label="Вычесть проёмы"
+                label={t("drywall.fields.openings")}
                 value={s.openings}
                 onChange={(openings) => setS((p) => ({ ...p, openings }))}
-                unit="м²"
+                unit={t("common.unit.m2")}
               />
             </div>
           </Section>
-          <Section
-            title="Лист"
-            description="Стандартный лист чаще 1,2 × 2,5 м. Запас — на подрезку и брак."
-          >
+          <Section title={t("drywall.sections.sheet")} description={t("drywall.sections.sheetDesc")}>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <NumberField
-                label="Ширина листа"
+                label={t("drywall.fields.sheetWidth")}
                 value={s.sheetWidth}
                 onChange={(sheetWidth) => setS((p) => ({ ...p, sheetWidth }))}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Высота листа"
+                label={t("drywall.fields.sheetHeight")}
                 value={s.sheetHeight}
                 onChange={(sheetHeight) => setS((p) => ({ ...p, sheetHeight }))}
-                unit="м"
+                unit={t("common.unit.m")}
               />
               <NumberField
-                label="Запас"
+                label={t("drywall.fields.waste")}
                 value={s.wastePercent}
                 onChange={(wastePercent) => setS((p) => ({ ...p, wastePercent }))}
-                unit="%"
+                unit={t("common.unit.percent")}
                 step={1}
               />
               <NumberField
-                label="Саморезы на лист"
+                label={t("drywall.fields.screws")}
                 value={s.screwsPerSheet}
                 onChange={(screwsPerSheet) => setS((p) => ({ ...p, screwsPerSheet }))}
-                unit="шт"
+                unit={t("common.unit.pcs")}
                 step={1}
               />
             </div>
@@ -117,10 +119,10 @@ export function DrywallCalculator() {
       }
       results={
         <div>
-          <ResultRow label="Площадь стен" value={fmt(wallArea)} unit="м²" />
-          <ResultRow label="С запасом" value={fmt(withWaste)} unit="м²" />
-          <ResultRow label="Листов купить" value={sheets} unit="шт" emphasize />
-          <ResultRow label="Саморезы" value={fmt(screws, 0)} unit="шт" />
+          <ResultRow label={t("drywall.results.wallArea")} value={fmt(wallArea)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("drywall.results.withWaste")} value={fmt(withWaste)} unit={t("common.unit.m2")} />
+          <ResultRow label={t("drywall.results.sheets")} value={sheets} unit={t("common.unit.pcs")} emphasize />
+          <ResultRow label={t("drywall.results.screws")} value={fmt(screws, 0)} unit={t("common.unit.pcs")} />
         </div>
       }
     />
